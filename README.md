@@ -12,7 +12,7 @@ This project originated from my undergraduate research at the Air Transportation
 
 The research goal was to build an integrated simulation framework that could reproduce an electric-aircraft mission and predict how both aircraft motion and battery states evolve throughout the flight.
 
-During the research project, I designed and implemented the core flight-simulation workflow. After the research period, I continued developing the project as a personal software-engineering exercise, exploring how the simulation core could be reorganized and extended toward a web-based telemetry and monitoring system.
+During the research project, I designed and implemented the core flight-simulation workflow. After the research period, I continued developing the project as a personal software-engineering exercise, reorganizing the simulation core and exploring how it could support incremental execution, telemetry, and future application-layer integration.
 
 ---
 
@@ -46,12 +46,12 @@ The core simulation logic originates from my undergraduate research implementati
 | Guidance and control | Separated guidance and control modules |
 | 3-DOF flight dynamics | Modular flight-dynamics simulation core |
 | Integrated propulsion and battery simulation | Explicit powertrain modules and interfaces |
-| Batch-oriented simulation workflow | Incremental `FlightSimulator.step()` API |
-| Research-oriented scripts | Reusable package structure and tests |
+| Batch-oriented simulation workflow | Incremental `FlightSimulator.step()` interface |
+| Research-oriented scripts | Reusable package structure and regression tests |
 
-The web-oriented structure, API-related code, backend/frontend scaffolding, and monitoring-system extensions were added after the research project and were not part of the original research implementation.
+The backend/frontend scaffolding and other web-oriented project structure were added after the research project as part of an exploration of software architecture and application development.
 
-These post-research extensions were developed with the assistance of AI coding tools as part of my effort to study software architecture and application development.
+These web-oriented post-research additions were developed with the assistance of AI coding tools. They should be considered separate from the original research implementation.
 
 ---
 
@@ -75,8 +75,8 @@ At each simulation step, the system coordinates:
 
 1. Waypoint guidance
 2. Flight control
-3. Propulsion-system calculation
-4. Battery-state update
+3. Power-command generation
+4. Battery and propulsion-system calculation
 5. 3-DOF aircraft-state propagation
 6. Telemetry generation
 
@@ -114,39 +114,42 @@ Mission Profile / Flight Data
           Control
             │
             ▼
-      Power Command
+    Shaft Power Command
             │
             ▼
-   ┌───────────────────┐
-   │  Powertrain Model │
-   │                   │
-   │  Motor*           │
-   │    ↓              │
-   │  Propeller*       │
-   │    ↓              │
-   │  Battery*         │
-   └───────────────────┘
-        │         │
-      Thrust   Battery State
-        │         │
-        ▼         │
-  3-DOF Flight    │
-    Dynamics      │
-        │         │
-        ▼         │
-  Aircraft State │
-        │         │
-        └────┬────┘
-             ▼
-      Telemetry Frame
-             │
-             ▼
-       Next Time Step
+   ┌─────────────────────┐
+   │   Powertrain Model  │
+   │                     │
+   │      Battery*       │
+   │          │          │
+   │          ▼          │
+   │ Motor / Inverter*   │
+   │          │          │
+   │          ▼          │
+   │     Propeller*      │
+   └──────────┬──────────┘
+              │
+            Thrust
+              │
+              ▼
+       3-DOF Flight
+         Dynamics
+              │
+              ▼
+        Aircraft State
+
+Battery State ─────────────┐
+Aircraft State ────────────┤
+                           ▼
+                    Telemetry Frame
+                           │
+                           ▼
+                    Next Time Step
 ```
 
-\* Motor, propeller, and battery surrogate models were developed by other research team members and integrated into the simulator by me.
+\* The motor, propeller, and battery models were developed by other research team members and integrated into the overall simulator by me.
 
-The `FlightSimulator` class acts as the orchestration layer that coordinates guidance, control, flight dynamics, propulsion, and battery-state updates.
+The `FlightSimulator` class acts as the orchestration layer that coordinates guidance, control, flight dynamics, propulsion, battery-state updates, and telemetry generation.
 
 ---
 
@@ -178,10 +181,10 @@ Electric-Aircraft-Simulator/
 │       └── system.py
 │
 ├── tests/                     # Simulator regression tests
-├── scripts/                   # Demo and utility scripts
-├── data/                      # Simulation input/output data
+├── scripts/                   # Demo and simulation utilities
+├── data/                      # Simulation inputs and generated outputs
 ├── docs/                      # Architecture and development notes
-├── apps/                      # Post-research web-oriented extensions
+├── apps/                      # Placeholder structure for future web extensions
 ├── requirements.txt
 └── README.md
 ```
@@ -200,7 +203,7 @@ Mission-profile data are converted into waypoints, which are sequentially used a
 
 ### Incremental Simulation API
 
-The current repository provides an incremental simulation interface:
+In addition to the batch-oriented simulation workflow, the current repository provides an incremental simulation interface:
 
 ```python
 from simulator import FlightSimulator
@@ -215,17 +218,19 @@ Each call to `step()` advances the simulator by one simulation step and returns 
 
 ### Modular Subsystems
 
-Guidance, control, flight dynamics, atmosphere, propulsion, and battery-related logic are separated into modules to make the simulation structure easier to inspect, test, and extend.
+Guidance, control, flight dynamics, atmosphere, propulsion, and battery-related logic are separated into modules so that subsystem responsibilities and interfaces can be inspected, tested, and extended independently.
 
 ### Regression Testing
 
-The repository includes tests that compare the incremental simulator against the existing batch-simulation workflow to verify consistency between the two execution paths.
+The repository includes regression tests that compare the incremental simulator against the existing batch-simulation workflow to verify consistency between the two execution paths.
+
+The tests use synthetic flight data generated at runtime and do not require the private real-flight datasets used during the research project.
 
 ---
 
 ## Validation
 
-The integrated simulator was validated against real-flight logs.
+During the research project, the integrated simulator was validated against real-flight logs.
 
 Battery-state prediction performance included:
 
@@ -235,35 +240,54 @@ Battery-state prediction performance included:
 | State of Charge (SOC) | 1.8 percentage points |
 | Battery Temperature | 0.44 °C |
 
-These results were used to evaluate how closely the integrated simulation reproduced battery behavior observed during real flights.
+These results were used to evaluate how closely the integrated simulation reproduced battery behavior observed during the analyzed real flights.
+
+The original real-flight datasets used for this validation are not included in this public repository.
 
 ---
 
 ## Quick Start
 
-### 1. Create a virtual environment
+### 1. Clone the repository
 
 ```bash
-python -m venv .venv
+git clone https://github.com/yeseo01/Electric-Aircraft-Simulator.git
+cd Electric-Aircraft-Simulator
 ```
 
-### 2. Activate the environment
+### 2. Create a virtual environment
+
+```bash
+python3 -m venv .venv
+```
+
+### 3. Activate the environment
+
+macOS / Linux:
 
 ```bash
 source .venv/bin/activate
 ```
 
-### 3. Install dependencies
+Windows:
 
 ```bash
-pip install -r requirements.txt
+.venv\Scripts\activate
 ```
 
-### 4. Run the demo
+### 4. Install dependencies
+
+```bash
+python -m pip install -r requirements.txt
+```
+
+### 5. Run the demo
 
 ```bash
 python -m scripts.run_demo
 ```
+
+The demo automatically generates synthetic flight data and does not require the private research flight logs.
 
 ---
 
@@ -279,6 +303,8 @@ The current tests verify:
 
 - consistency between the incremental `FlightSimulator` interface and the existing batch simulation
 - correct simulator execution and termination behavior
+
+Synthetic flight data are generated at runtime for testing and are not derived from the private research datasets.
 
 ---
 
@@ -298,20 +324,21 @@ The simulator is intended for research, analysis, and software-development exper
 
 ---
 
-## Post-Research Software Extension
+## Post-Research Software Exploration
 
-After the undergraduate research project, I explored how the simulation core could be extended toward a software system supporting live telemetry and monitoring.
+After the undergraduate research project, I explored how the simulation core could be reorganized and extended toward a software system supporting incremental execution, telemetry, and future web-based monitoring.
 
-This work includes software structure related to:
+The current repository therefore includes software-oriented structure intended to support future work such as:
 
-- incremental simulation interfaces
-- API-oriented integration
-- backend architecture
+- API-based simulation control
 - telemetry delivery
+- backend integration
 - web-based monitoring
-- future visualization tools
+- interactive visualization
 
-These components were developed after the research project with the assistance of AI coding tools and should be considered separate from the original research implementation.
+The backend/frontend scaffolding and other web-oriented project structure were added after the research project with the assistance of AI coding tools.
+
+These additions are separate from the original research implementation.
 
 ---
 
@@ -324,6 +351,7 @@ Possible extensions include:
 - live flight and battery-state visualization
 - scenario comparison tools
 - route and energy trade-off analysis
+- additional automated tests
 - additional validation using independent flight datasets
 
 ---
