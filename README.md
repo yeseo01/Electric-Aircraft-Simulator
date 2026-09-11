@@ -12,7 +12,7 @@ This project originated from my undergraduate research at the Air Transportation
 
 The research goal was to build an integrated simulation framework that could reproduce an electric-aircraft mission and predict how both aircraft motion and battery states evolve throughout the flight.
 
-During the research project, I designed and implemented the core flight-simulation workflow. After the research period, I continued developing the project as a personal software-engineering exercise, reorganizing the simulation core and exploring how it could support incremental execution, telemetry, and future application-layer integration.
+During the research project, I designed and implemented the core flight-simulation workflow. After the research period, I continued developing the project as a personal software-engineering exercise, exploring how the existing simulation core could support incremental execution, telemetry, testing, and future application-layer integration.
 
 ---
 
@@ -37,19 +37,16 @@ The motor, propeller, and battery surrogate models themselves were developed by 
 
 The current repository is not an exact snapshot of the original research codebase.
 
-The core simulation logic originates from my undergraduate research implementation, while additional software structure was introduced afterward as part of my software-development study.
+The core simulation architecture—including mission-profile processing, waypoint generation, guidance and control, 3-DOF flight dynamics, and the integration of propulsion and battery models—originates from my undergraduate research implementation.
 
-| Research Implementation | Current Repository |
+The primary post-research additions in the current repository are:
+
+| Research Implementation | Post-Research Addition |
 | --- | --- |
-| Mission-profile input | Structured input and configuration modules |
-| Waypoint generation | Modular flight-data and waypoint handling |
-| Guidance and control | Separated guidance and control modules |
-| 3-DOF flight dynamics | Modular flight-dynamics simulation core |
-| Integrated propulsion and battery simulation | Explicit powertrain modules and interfaces |
-| Batch-oriented simulation workflow | Incremental `FlightSimulator.step()` interface |
-| Research-oriented scripts | Reusable package structure and regression tests |
+| Batch-oriented simulation workflow | Incremental `FlightSimulator.step()` interface for step-by-step execution and telemetry generation |
+| Research-oriented execution and validation workflow | Regression tests for validating simulator behavior across execution paths |
 
-The backend/frontend scaffolding and other web-oriented project structure were added after the research project as part of an exploration of software architecture and application development.
+The backend/frontend scaffolding and other web-oriented project structure were also added after the research project as part of an exploration of software architecture and application development.
 
 These web-oriented post-research additions were developed with the assistance of AI coding tools. They should be considered separate from the original research implementation.
 
@@ -114,19 +111,16 @@ Mission Profile / Flight Data
           Control
             │
             ▼
-    Shaft Power Command
+       Power Command
             │
             ▼
    ┌─────────────────────┐
    │   Powertrain Model  │
    │                     │
-   │      Battery*       │
-   │          │          │
-   │          ▼          │
-   │ Motor / Inverter*   │
-   │          │          │
-   │          ▼          │
-   │     Propeller*      │
+   │   Battery*          │
+   │   Motor / Inverter* │
+   │   Propeller*        │
+   │   RPM Solver        │
    └──────────┬──────────┘
               │
             Thrust
@@ -203,7 +197,7 @@ Mission-profile data are converted into waypoints, which are sequentially used a
 
 ### Incremental Simulation API
 
-In addition to the batch-oriented simulation workflow, the current repository provides an incremental simulation interface:
+In addition to the batch-oriented simulation workflow used during the research project, the current repository provides an incremental simulation interface:
 
 ```python
 from simulator import FlightSimulator
@@ -216,9 +210,9 @@ while not simulator.finished:
 
 Each call to `step()` advances the simulator by one simulation step and returns a telemetry frame containing the current aircraft and battery states.
 
-### Modular Subsystems
+### Modular Simulation Components
 
-Guidance, control, flight dynamics, atmosphere, propulsion, and battery-related logic are separated into modules so that subsystem responsibilities and interfaces can be inspected, tested, and extended independently.
+The simulator separates guidance, control, flight dynamics, atmosphere, propulsion, and battery-related logic into distinct components with explicit responsibilities within the overall simulation workflow.
 
 ### Regression Testing
 
@@ -326,9 +320,9 @@ The simulator is intended for research, analysis, and software-development exper
 
 ## Post-Research Software Exploration
 
-After the undergraduate research project, I explored how the simulation core could be reorganized and extended toward a software system supporting incremental execution, telemetry, and future web-based monitoring.
+After the undergraduate research project, I explored how the existing simulation core could be extended toward a software system supporting incremental execution, telemetry, automated testing, and future web-based monitoring.
 
-The current repository therefore includes software-oriented structure intended to support future work such as:
+The current repository therefore includes post-research software-oriented additions intended to support future work such as:
 
 - API-based simulation control
 - telemetry delivery
