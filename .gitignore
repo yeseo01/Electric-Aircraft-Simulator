@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual environments
+.venv/
+venv/
+.codex_pydeps/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Private research data
+*.csv
+data/input/flight_logs/
+
+# Generated outputs
+data/output/
+
+# Logs / temporary files
+*.log
+tmp/
+temp/
