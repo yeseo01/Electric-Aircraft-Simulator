@@ -88,38 +88,55 @@ def _run_batch_simulation(
         )
 
 
-def test_incremental_first_20_frames_match_batch_simulation(tmp_path) -> None:
+def test_incremental_run_matches_batch_simulation(tmp_path) -> None:
     cfg = _make_test_config(tmp_path)
 
     batch = _run_batch_simulation(cfg)
     sim = FlightSimulator.from_config(cfg=cfg)
 
-    frames = [sim.step() for _ in range(20)]
+    with contextlib.redirect_stdout(io.StringIO()):
+        frames = sim.run_all()
 
-    assert all(frame is not None for frame in frames)
-    assert np.allclose([frame.timestamp for frame in frames], batch["t"][:20])
-    assert np.allclose([frame.x_m for frame in frames], batch["x"][:20])
-    assert np.allclose([frame.y_m for frame in frames], batch["y"][:20])
-    alt0_abs_m = float(load_flight_csv(cfg.FLIGHT_CSV_PATH)["alt"][0])
+    assert len(frames) == len(batch["t"])
+
     assert np.allclose(
-        batch["alt_abs"][:20],
-        alt0_abs_m + batch["h"][:20],
+        [frame.timestamp for frame in frames],
+        batch["t"],
+    )
+    assert np.allclose(
+        [frame.x_m for frame in frames],
+        batch["x"],
+    )
+    assert np.allclose(
+        [frame.y_m for frame in frames],
+        batch["y"],
+    )
+
+    alt0_abs_m = float(load_flight_csv(cfg.FLIGHT_CSV_PATH)["alt"][0])
+
+    assert np.allclose(
+        batch["alt_abs"],
+        alt0_abs_m + batch["h"],
     )
     assert np.allclose(
         [frame.altitude_m for frame in frames],
-        batch["alt_abs"][:20],
+        batch["alt_abs"],
     )
     assert np.allclose(
         [frame.airspeed_mps for frame in frames],
-        batch["V"][:20],
+        batch["V"],
     )
-    assert np.allclose([frame.soc for frame in frames], batch["SOC"][:20])
+    assert np.allclose(
+        [frame.soc for frame in frames],
+        batch["SOC"],
+    )
     assert np.allclose(
         [frame.voltage_v for frame in frames],
-        batch["Vdc"][:20],
+        batch["Vdc"],
     )
+
     assert [frame.phase for frame in frames] == [
-        str(phase) for phase in batch["phase_at_sim"][:20]
+        str(phase) for phase in batch["phase_at_sim"]
     ]
 
 
