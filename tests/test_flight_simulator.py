@@ -98,6 +98,15 @@ def test_incremental_first_20_frames_match_batch_simulation(tmp_path) -> None:
     assert np.allclose([frame.timestamp for frame in frames], batch["t"][:20])
     assert np.allclose([frame.x_m for frame in frames], batch["x"][:20])
     assert np.allclose([frame.y_m for frame in frames], batch["y"][:20])
+    alt0_abs_m = float(load_flight_csv(cfg.FLIGHT_CSV_PATH)["alt"][0])
+    assert np.allclose(
+        batch["alt_abs"][:20],
+        alt0_abs_m + batch["h"][:20],
+    )
+    assert np.allclose(
+        [frame.altitude_m for frame in frames],
+        batch["alt_abs"][:20],
+    )
     assert np.allclose(
         [frame.airspeed_mps for frame in frames],
         batch["V"][:20],

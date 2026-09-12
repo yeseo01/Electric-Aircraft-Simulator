@@ -521,7 +521,7 @@ def simulate_flight(
         CD_hist.append(float(CD_now))
 
         rho_hist.append(float(p.rho))
-        alt_abs_hist.append(float(alt_abs))
+        alt_abs_hist.append(float(alt0_abs_m + st.h))
 
         SOC_hist.append(float(pt_state.soc))
         Temp_hist.append(float(pt_state.temp_c))

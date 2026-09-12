@@ -248,7 +248,7 @@ class FlightSimulator:
             timestamp=float(self.t),
             x_m=float(next_state.x),
             y_m=float(next_state.y),
-            altitude_m=float(alt_abs),
+            altitude_m=float(self.alt0_abs_m + next_state.h),
             airspeed_mps=float(next_state.V),
             heading_rad=float(next_state.beta),
             flight_path_angle_rad=float(next_state.gamma),
