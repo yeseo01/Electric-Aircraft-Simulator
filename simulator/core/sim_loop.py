@@ -137,7 +137,7 @@ def rhs(
         CL_req, _ = schedule_CL_for_gamma(st, mu, gamma_cmd, p, cfg)
 
         # (2) 공력 및 thrust 반영
-        L, D, T, _ = aero_from_CL(st.V, p.rho, p, CL_req, thrust_N, cfg, gamma=st.gamma)
+        L, D, T, _ = aero_from_CL(st.V, p.rho, p, CL_req, thrust_N, cfg)
         D *= float(max(0.1, flight_drag_scale))
 
         V = max(1e-3, float(st.V))

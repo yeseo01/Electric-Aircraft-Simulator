@@ -15,8 +15,7 @@ def aero_from_CL(
     CL: float,
     thrust_N: float,
     cfg: SimConfig,
-    gamma: None,
-    ) -> Tuple[float, float, float, float]:
+) -> Tuple[float, float, float, float]:
 
     """
     단순 공력:
