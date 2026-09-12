@@ -1,3 +1,5 @@
+"""Regression tests for the incremental and batch flight simulators."""
+
 from __future__ import annotations
 
 import contextlib
@@ -9,12 +11,17 @@ from simulator import FlightSimulator
 from simulator.config import SimConfig
 from simulator.core.atmosphere import compute_rho
 from simulator.core.control import PowerController
-from simulator.core.io_flight import build_oat_input, load_flight_csv, make_waypoints_from_csv
+from simulator.core.io_flight import (
+    build_oat_input,
+    load_flight_csv,
+    make_waypoints_from_csv,
+)
 from simulator.core.sim_loop import simulate_flight
+from simulator.demo_data import create_synthetic_flight_csv
 from simulator.powertrain.prop import PropellerModel
 from simulator.powertrain.system import Powertrain
 from simulator.schemas import ParamsPM
-from simulator.demo_data import create_synthetic_flight_csv
+
 
 def _make_test_config(tmp_path) -> SimConfig:
     cfg = SimConfig()
@@ -22,6 +29,7 @@ def _make_test_config(tmp_path) -> SimConfig:
         tmp_path / "synthetic_flight.csv"
     )
     return cfg
+
 
 def _run_batch_simulation(
     cfg: SimConfig,
