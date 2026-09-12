@@ -46,10 +46,6 @@ The primary post-research additions in the current repository are:
 | Batch-oriented simulation workflow | Incremental `FlightSimulator.step()` interface for step-by-step execution and telemetry generation |
 | Research-oriented execution and validation workflow | Regression tests for validating simulator behavior across execution paths |
 
-The backend/frontend scaffolding and other web-oriented project structure were also added after the research project as part of an exploration of software architecture and application development.
-
-These web-oriented post-research additions were developed with the assistance of AI coding tools. They should be considered separate from the original research implementation.
-
 ---
 
 ## What the Simulator Does
@@ -154,6 +150,7 @@ Electric-Aircraft-Simulator/
 │
 ├── simulator/
 │   ├── flight_simulator.py    # Incremental simulation interface
+│   ├── demo_data.py           # Synthetic data generation for demo and tests
 │   ├── config.py              # Simulation configuration
 │   ├── schemas.py             # State and telemetry data structures
 │   │
@@ -177,8 +174,6 @@ Electric-Aircraft-Simulator/
 ├── tests/                     # Simulator regression tests
 ├── scripts/                   # Demo and simulation utilities
 ├── data/                      # Simulation inputs and generated outputs
-├── docs/                      # Architecture and development notes
-├── apps/                      # Placeholder structure for future web extensions
 ├── requirements.txt
 └── README.md
 ```
@@ -320,19 +315,13 @@ The simulator is intended for research, analysis, and software-development exper
 
 ## Post-Research Software Exploration
 
-After the undergraduate research project, I explored how the existing simulation core could be extended toward a software system supporting incremental execution, telemetry, automated testing, and future web-based monitoring.
+After the undergraduate research project, I continued developing the simulator as a software-engineering exercise.
 
-The current repository therefore includes post-research software-oriented additions intended to support future work such as:
+The current repository includes an incremental simulation interface, telemetry data structures, synthetic demo data generation, and regression tests that compare incremental execution with the original batch-oriented workflow.
 
-- API-based simulation control
-- telemetry delivery
-- backend integration
-- web-based monitoring
-- interactive visualization
+These additions explore how the research simulator can be made easier to execute, test, and integrate into future software applications.
 
-The backend/frontend scaffolding and other web-oriented project structure were added after the research project with the assistance of AI coding tools.
-
-These additions are separate from the original research implementation.
+Possible application-layer extensions, such as APIs, telemetry streaming, and web-based monitoring, remain future work.
 
 ---
 
