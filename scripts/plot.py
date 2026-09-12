@@ -110,10 +110,11 @@ def plot_ground_track(wps: np.ndarray, out: Dict[str, np.ndarray], title: str = 
 # ============================================================
 # Altitude
 # ============================================================
-def plot_altitude(out: Dict[str, np.ndarray],
-                  flight: Dict[str, np.ndarray],
-                  cfg: SimConfig,
-                  title: str = "Altitude (m)"):
+def plot_altitude(
+    out: Dict[str, np.ndarray],
+    flight: Dict[str, np.ndarray],
+    title: str = "Altitude (m)",
+):
 
     t_sim = out["t"]
     t_log = flight["t"] - float(flight["t"][0])
@@ -180,10 +181,11 @@ def plot_speed(out: Dict[str, np.ndarray],
 # ============================================================
 # Power
 # ============================================================
-def plot_power_signals(out: Dict[str, np.ndarray],
-                       flight: Dict[str, np.ndarray],
-                       cfg: SimConfig,
-                       title: str = "Power signals"):
+def plot_power_signals(
+    out: Dict[str, np.ndarray],
+    flight: Dict[str, np.ndarray],
+    title: str = "Power signals",
+):
 
     t_sim = out["t"]
     t_log = flight["t"] - float(flight["t"][0])
@@ -251,9 +253,10 @@ def plot_rpm(out: Dict[str, np.ndarray],
 # ============================================================
 # Thrust
 # ============================================================
-def plot_thrust(out: Dict[str, np.ndarray],
-                flight: Dict[str, np.ndarray],
-                title: str = "Thrust"):
+def plot_thrust(
+    out: Dict[str, np.ndarray],
+    title: str = "Thrust",
+):
 
     t_sim = out["t"]
     fig, ax1 = plt.subplots(1, 1, figsize=(11, 4), sharex=True)
@@ -274,12 +277,13 @@ def plot_thrust(out: Dict[str, np.ndarray],
 # ============================================================
 # Battery
 # ============================================================
-def plot_battery(out: Dict[str, np.ndarray],
-                 flight: Dict[str, np.ndarray],
-                 t_ref: np.ndarray,
-                 OAT_ref: np.ndarray,
-                 cfg: SimConfig,
-                 title: str = "Battery simulation"):
+def plot_battery(
+    out: Dict[str, np.ndarray],
+    flight: Dict[str, np.ndarray],
+    t_ref: np.ndarray,
+    OAT_ref: np.ndarray,
+    title: str = "Battery simulation",
+):
 
     t_sim = out["t"]
     t_log = flight["t"] - float(flight["t"][0])
@@ -363,9 +367,9 @@ def plot_all(wps: np.ndarray,
              cfg: SimConfig):
 
     plot_ground_track(wps, out)
-    plot_altitude(out, flight, cfg)
+    plot_altitude(out, flight)
     plot_speed(out, flight, cfg)
-    plot_power_signals(out, flight, cfg)
+    plot_power_signals(out, flight)
     plot_rpm(out, flight, cfg)
-    plot_thrust(out, flight)
-    plot_battery(out, flight, t_ref, OAT_ref, cfg)
+    plot_thrust(out)
+    plot_battery(out, flight, t_ref, OAT_ref)
