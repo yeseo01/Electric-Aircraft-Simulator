@@ -415,7 +415,7 @@ def plot_battery(
     m_t = compute_metrics(out["Temp"], bat_t_on_sim)
 
     # ============================================================
-    # Figure 1: Altitude + Voltage + SOC
+    # Figure 1: Voltage + SOC
     # ============================================================
     fig1, axes1 = plt.subplots(
         2,
@@ -467,7 +467,7 @@ def plot_battery(
     plt.show()
 
     # ============================================================
-    # Figure 2: Altitude + Current + Temp
+    # Figure 2: Current + Temp
     # ============================================================
     fig2, axes2 = plt.subplots(
         2,
