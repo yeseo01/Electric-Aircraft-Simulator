@@ -92,29 +92,6 @@ def plot_ground_track(wps: np.ndarray, out: Dict[str, np.ndarray], title: str = 
     x = np.asarray(out["x"], dtype=float)
     y = np.asarray(out["y"], dtype=float)
 
-    # (디버깅용-삭제절대금지) phase별 색상 구분해서 시뮬 궤적 표시
-    # phase_at_sim = out.get("phase_at_sim")
-    # if phase_at_sim is None:
-    #     plt.plot(x, y, ":", lw=1.5, label="Simulation")
-    # else:
-    #     phase_arr = np.char.lower(np.asarray(phase_at_sim, dtype=str))
-    #     colors = {
-    #         "ground_roll": "tab:green",
-    #         "climb": "tab:orange",
-    #         "cruise": "tab:blue",
-    #         "descent": "tab:red",
-    #     }
-    #     plotted_labels = set()
-    #     for i in range(len(x) - 1):
-    #         ph = str(phase_arr[i])
-    #         color = colors.get(ph, "k")
-    #         label = None
-    #         if ph not in plotted_labels:
-    #             label = f"Simulation - {ph}"
-    #             plotted_labels.add(ph)
-    #         plt.plot(x[i:i+2], y[i:i+2], ":", lw=1.2, color=color, label=label)
-
-    # 단일 색상으로 전체 시뮬레이션 궤적을 그림
     plt.plot(x, y, "--", lw=1.2, label="Simulation")
 
     plt.axis("equal")
