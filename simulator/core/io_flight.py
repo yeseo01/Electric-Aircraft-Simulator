@@ -17,18 +17,11 @@ def load_flight_csv(path: str) -> Dict[str, np.ndarray]:
     필수 컬럼:
       time(ms), LAT, LNG, PRESSURE_ALT,
       OAT, motor power, motor rpm, IAS,
-      bat 1 soc, bat 1 voltage, bat 1 current, bat 1 avg cell temp
+      bat 1 soc, bat 1 voltage, bat 1 current, bat 2 current,
+      bat 1 avg cell temp
     """
     df = pd.read_csv(path)
     df.columns = df.columns.str.strip()
-
-    head_cut = 0  # 앞에서 버릴 행 개수
-    tail_cut = 0     # 뒤에서 버릴 행 개수 (0이면 자르지 않음)
-
-    if tail_cut > 0:
-        df = df.iloc[head_cut:-tail_cut].reset_index(drop=True)
-    else:
-        df = df.iloc[head_cut:].reset_index(drop=True)
 
     required = [
         "time(ms)", "LAT", "LNG", "PRESSURE_ALT",
