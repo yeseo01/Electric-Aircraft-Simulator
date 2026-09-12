@@ -170,3 +170,24 @@ def test_batch_phase_control_does_not_require_ias_log(tmp_path) -> None:
         batch_without_ias["phase_at_sim"],
         batch_with_ias["phase_at_sim"],
     )
+
+
+def test_reset_restores_initial_simulation_state(tmp_path) -> None:
+    cfg = _make_test_config(tmp_path)
+    sim = FlightSimulator.from_config(cfg=cfg)
+
+    frames = sim.run_all()
+
+    assert sim.finished
+    assert len(frames) > 0
+
+    first_frame = frames[0]
+
+    sim.reset()
+
+    assert not sim.finished
+
+    frame_after_reset = sim.step()
+
+    assert frame_after_reset is not None
+    assert frame_after_reset == first_frame
