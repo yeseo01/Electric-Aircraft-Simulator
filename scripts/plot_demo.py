@@ -11,7 +11,6 @@ from simulator.config import SimConfig
 def plot_demo(
     wps: np.ndarray,
     out: Dict[str, np.ndarray],
-    flight: Dict[str, np.ndarray],
     cfg: SimConfig,
 ) -> None:
     """Plot an overview of the public synthetic demo.
