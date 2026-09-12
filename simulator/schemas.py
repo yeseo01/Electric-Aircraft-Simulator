@@ -1,31 +1,38 @@
-# datatypes.py
 from __future__ import annotations
+
 from dataclasses import dataclass
+
 import numpy as np
 
 
 @dataclass
 class ParamsPM:
+    """Parameters required by the point-mass equations of motion.
+
+    ``rho`` may be updated at each simulation step as atmospheric
+    conditions change.
     """
-    point-mass 방정식에 필요한 최소 파라미터.
-    - rho는 시뮬 루프에서 매 스텝 업데이트될 수 있음
-    """
-    g: float          # 중력가속도 [m/s^2]
-    rho: float        # 공기 밀도 [kg/m^3]
-    m: float          # 질량 [kg]
-    S: float          # 날개면적 [m^2]
-    dt: float         # 적분 timestep [s]
+
+    g: float          # Gravitational acceleration [m/s^2]
+    rho: float        # Air density [kg/m^3]
+    m: float          # Aircraft mass [kg]
+    S: float          # Wing area [m^2]
+    dt: float         # Integration timestep [s]
 
 
 @dataclass
 class State:
+    """Aircraft state used by the point-mass simulation.
+
+    Attributes:
+        x: East position in the local ENU frame [m].
+        y: North position in the local ENU frame [m].
+        h: Relative altitude [m].
+        V: Airspeed magnitude [m/s].
+        beta: Heading angle [rad].
+        gamma: Flight-path angle [rad].
     """
-    시뮬레이션 상태벡터:
-      x,y,h : ENU 위치 [m]
-      V     : 속도 크기 [m/s]
-      beta  : heading [rad]
-      gamma : flight-path angle [rad]
-    """
+
     x: float
     y: float
     h: float
@@ -34,12 +41,15 @@ class State:
     gamma: float
 
     def vec(self) -> np.ndarray:
-        """RK 적분을 위한 ndarray 변환"""
-        return np.array([self.x, self.y, self.h, self.V, self.beta, self.gamma], dtype=float)
+        """Return the state as an array for numerical integration."""
+        return np.array(
+            [self.x, self.y, self.h, self.V, self.beta, self.gamma],
+            dtype=float,
+        )
 
     @staticmethod
     def from_vec(v: np.ndarray) -> "State":
-        """ndarray -> State"""
+        """Construct a state from a numerical state vector."""
         return State(
             x=float(v[0]),
             y=float(v[1]),
@@ -47,18 +57,20 @@ class State:
             V=float(v[3]),
             beta=float(v[4]),
             gamma=float(v[5]),
-            )
+        )
 
 
 @dataclass
 class GuidanceOut:
+    """Output produced by the waypoint-guidance logic.
+
+    Attributes:
+        h_d: Target altitude [m].
+        beta_d: Target heading [rad].
+        wp_idx: Index of the active waypoint.
+        dist_to_wp: Horizontal distance to the active waypoint [m].
     """
-    guidance 출력:
-      h_d    : 목표 고도
-      beta_d : 목표 진행 방향(헤딩)
-      wp_idx : 현재 추종 waypoint 인덱스
-      dist_to_wp : 현재 위치와 waypoint 수평거리
-    """
+
     h_d: float
     beta_d: float
     wp_idx: int
@@ -67,21 +79,20 @@ class GuidanceOut:
 
 @dataclass
 class FlightScenario:
-    """
-    시뮬레이터 실행 입력 묶음.
+    """Input scenario for a simulator run.
 
-    첫 제품화 단계에서는 CSV 기반 시나리오를 기본값으로 사용한다.
-    나중에 UI에서 초기 위치, 목적지, 위험요소를 입력받으면 이 구조를 확장한다.
+    When provided, ``flight_csv_path`` overrides the default input path
+    defined in ``SimConfig``.
     """
+
     name: str = "default"
     flight_csv_path: str | None = None
 
 
 @dataclass
 class TelemetryFrame:
-    """
-    화면/서버로 한 step씩 전달할 시뮬레이션 프레임.
-    """
+    """Post-step simulation state exposed as a telemetry frame."""
+
     timestamp: float
     x_m: float
     y_m: float
