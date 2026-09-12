@@ -9,7 +9,10 @@ r'''
 '''
 
 from __future__ import annotations
+
+import contextlib
 import csv
+import io
 import sys
 from pathlib import Path
 
@@ -20,14 +23,19 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from simulator.config import SimConfig
+from simulator.demo_data import create_demo_flight_csv
 from simulator.schemas import ParamsPM
 from simulator.core.atmosphere import compute_rho
-from simulator.core.io_flight import load_flight_csv, make_waypoints_from_csv, build_oat_input
+from simulator.core.io_flight import (
+    load_flight_csv,
+    make_waypoints_from_csv,
+    build_oat_input,
+)
 from simulator.core.control import PowerController
 from simulator.powertrain.prop import PropellerModel
 from simulator.powertrain.system import Powertrain
 from simulator.core.sim_loop import simulate_flight
-from scripts.plot import plot_all
+from scripts.plot_demo import plot_demo
 
 
 def save_sim_result_csv(path: str, out: dict[str, np.ndarray]) -> None:
@@ -41,15 +49,20 @@ def save_sim_result_csv(path: str, out: dict[str, np.ndarray]) -> None:
         for key, val in out.items()
         if isinstance(val, np.ndarray) and np.asarray(val).ndim == 1
     }
+
     if not one_dim:
         return
 
     n_rows = min(len(arr) for arr in one_dim.values())
     cols = [key for key, arr in one_dim.items() if len(arr) == n_rows]
 
-    with open(path, "w", newline="", encoding="utf-8-sig") as f:
+    output_path = Path(path)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+
+    with output_path.open("w", newline="", encoding="utf-8-sig") as f:
         writer = csv.writer(f)
         writer.writerow(cols)
+
         for i in range(n_rows):
             writer.writerow([one_dim[col][i] for col in cols])
 
@@ -61,8 +74,20 @@ def main():
     cfg = SimConfig()
 
     # ============================================================
-    # (2) 비행 로그 로드 + 웨이포인트 생성
+    # (2) Public demo input 생성 + 비행 로그 로드
     # ============================================================
+    demo_flight_path = (
+        PROJECT_ROOT
+        / "data"
+        / "input"
+        / "demo"
+        / "synthetic_flight.csv"
+    )
+
+    cfg.FLIGHT_CSV_PATH = create_demo_flight_csv(demo_flight_path)
+
+    print(f"Created synthetic demo mission: {cfg.FLIGHT_CSV_PATH}")
+
     flight = load_flight_csv(cfg.FLIGHT_CSV_PATH)
 
     # 로그를 시간 기준으로 다운샘플링하여 ENU 웨이포인트 생성
@@ -134,62 +159,55 @@ def main():
     t_log_0 = flight["t"] - float(flight["t"][0])
     phase_log = flight.get("phase")
 
-    out = simulate_flight(
-        wps=wps,
-        t_wps=twp,
-        t_max=t_max,
-        p=p,
-        cfg=cfg,
-        power_ctrl=power_ctrl,
-        powertrain=powertrain,
-        t_ref=t_ref,
-        OAT_ref=OAT_ref,
-        alt0_abs_m=alt0_abs_m,
-        t_log=t_log_0,
-        IAS_log=flight["IAS"],
-        phase_log=phase_log,
+    print("Running synthetic demo simulation...")
+
+    with contextlib.redirect_stdout(io.StringIO()):
+        out = simulate_flight(
+            wps=wps,
+            t_wps=twp,
+            t_max=t_max,
+            p=p,
+            cfg=cfg,
+            power_ctrl=power_ctrl,
+            powertrain=powertrain,
+            t_ref=t_ref,
+            OAT_ref=OAT_ref,
+            alt0_abs_m=alt0_abs_m,
+            t_log=t_log_0,
+            IAS_log=flight["IAS"],
+            phase_log=phase_log,
         )
+
+    print("Simulation completed.")
 
     # ============================================================
     # (8) 결과 플롯
     # ============================================================
-    plot_all(
-        wps=wps,
-        out=out,
-        flight=flight,
-        t_ref=t_ref,
-        OAT_ref=OAT_ref,
-        cfg=cfg,
-        )
+    plot_demo(
+    wps=wps,
+    out=out,
+    flight=flight,
+    cfg=cfg,
+    )
 
     # ============================================================
     # (9) 간단 요약 출력
     # ============================================================
-    print("\n=== 시뮬레이션 요약 ===")
-    print(f"CSV 파일          : {cfg.FLIGHT_CSV_PATH}")
-    print(f"프로펠러 NPZ 파일 : {cfg.PROP_NPZ_PATH}")
-    print(f"적분 시간 간격    : {cfg.DT_SIM:.3f} s")
-    print(f"시뮬 종료 시간    : {out['t'][-1]/60.0:.2f} min  | step 수={len(out['t'])}")
-    print(f"속도 kt (최소/중간/최대): "
-          f"{np.nanmin(out['V']*cfg.MS2KT):.2f} / "
-          f"{np.nanmedian(out['V']*cfg.MS2KT):.2f} / "
-          f"{np.nanmax(out['V']*cfg.MS2KT):.2f}")
-    print(f"명령 파워 kW (최소/중간/최대): "
-          f"{np.nanmin(out['P_cmd'])/1000.0:.2f} / "
-          f"{np.nanmedian(out['P_cmd'])/1000.0:.2f} / "
-          f"{np.nanmax(out['P_cmd'])/1000.0:.2f}")
-    print(f"최종 SOC (%)      : {out['SOC'][-1]*100.0:.2f}")
-    print(f"최종 배터리 전압 : {out['Vdc'][-1]:.2f} V")
-    print(f"최종 배터리 온도 : {out['Temp'][-1]:.2f} °C")
-    print(f"현재(마지막 step) 위치-웨이포인트 거리 : {out['wp_dist'][-1]:.2f} m")
-    print(f"웨이포인트 거리 m (최소/중간/최대): "
-          f"{np.nanmin(out['wp_dist']):.2f} / "
-          f"{np.nanmedian(out['wp_dist']):.2f} / "
-          f"{np.nanmax(out['wp_dist']):.2f}")
+    print("\n=== Simulation Summary ===")
+    print(f"Duration                  : {out['t'][-1] / 60.0:.2f} min")
+    print(f"Simulation steps          : {len(out['t'])}")
+    print(
+        f"Airspeed range            : "
+        f"{np.nanmin(out['V'] * cfg.MS2KT):.2f} - "
+        f"{np.nanmax(out['V'] * cfg.MS2KT):.2f} kt"
+    )
+    print(f"Final SOC                 : {out['SOC'][-1] * 100.0:.2f} %")
+    print(f"Final battery voltage     : {out['Vdc'][-1]:.2f} V")
+    print(f"Final battery temperature : {out['Temp'][-1]:.2f} °C")
 
     if cfg.SAVE_SIM_RESULT_CSV:
         save_sim_result_csv(cfg.SIM_RESULT_CSV_PATH, out)
-        print(f"시뮬 결과 CSV 저장 : {cfg.SIM_RESULT_CSV_PATH}")
+        print(f"Results saved to           : {cfg.SIM_RESULT_CSV_PATH}")
 
 
 if __name__ == "__main__":

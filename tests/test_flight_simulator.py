@@ -4,7 +4,6 @@ import contextlib
 import io
 
 import numpy as np
-import pandas as pd
 
 from simulator import FlightSimulator
 from simulator.config import SimConfig
@@ -15,68 +14,14 @@ from simulator.core.sim_loop import simulate_flight
 from simulator.powertrain.prop import PropellerModel
 from simulator.powertrain.system import Powertrain
 from simulator.schemas import ParamsPM
-
-
-def _create_synthetic_flight_csv(tmp_path) -> str:
-    """Create a small synthetic flight log for tests.
-
-    The data are artificial and do not originate from real flight logs.
-    """
-    n = 121
-    t_sec = np.arange(n, dtype=float)
-
-    # Simple artificial route.
-    lat0 = 37.0
-    lon0 = 127.0
-
-    lat = lat0 + np.linspace(0.0, 0.01, n)
-    lon = lon0 + np.linspace(0.0, 0.005, n)
-
-    # Simple climb / cruise / descent profile.
-    altitude = np.concatenate(
-        [
-            np.linspace(100.0, 300.0, 41),
-            np.full(40, 300.0),
-            np.linspace(300.0, 120.0, 40),
-        ]
-    )
-
-    phase = np.array(
-        ["climb"] * 41
-        + ["cruise"] * 40
-        + ["descent"] * 40
-    )
-
-    df = pd.DataFrame(
-        {
-            "time(ms)": t_sec * 1000.0,
-            "LAT": lat,
-            "LNG": lon,
-            "PRESSURE_ALT": altitude,
-            "OAT": np.full(n, 20.0),
-            "motor power": np.full(n, 40.0),
-            "motor rpm": np.full(n, 2200.0),
-            "IAS": np.full(n, 30.0),
-            "bat 1 soc": np.linspace(95.0, 90.0, n),
-            "bat 1 voltage": np.full(n, 400.0),
-            "bat 1 current": np.full(n, 50.0),
-            "bat 2 current": np.full(n, 50.0),
-            "bat 1 avg cell temp": np.full(n, 25.0),
-            "phase": phase,
-        }
-    )
-
-    path = tmp_path / "synthetic_flight.csv"
-    df.to_csv(path, index=False)
-
-    return str(path)
-
+from simulator.demo_data import create_synthetic_flight_csv
 
 def _make_test_config(tmp_path) -> SimConfig:
     cfg = SimConfig()
-    cfg.FLIGHT_CSV_PATH = _create_synthetic_flight_csv(tmp_path)
+    cfg.FLIGHT_CSV_PATH = create_synthetic_flight_csv(
+        tmp_path / "synthetic_flight.csv"
+    )
     return cfg
-
 
 def _run_batch_simulation(cfg: SimConfig) -> dict[str, np.ndarray]:
     flight = load_flight_csv(cfg.FLIGHT_CSV_PATH)
