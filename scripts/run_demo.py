@@ -31,10 +31,9 @@ from scripts.plot_demo import plot_demo
 
 
 def save_sim_result_csv(path: str, out: dict[str, np.ndarray]) -> None:
-    """
-    시뮬레이션 결과 dict를 CSV로 저장한다.
-    - 1차원 ndarray만 저장 대상에 포함한다.
-    - 길이가 다른 항목은 제외하여 CSV 컬럼 길이를 일치시킨다.
+    """Save one-dimensional simulation outputs with a common length to CSV.
+
+    Arrays whose lengths differ from the shortest 1-D output are excluded.
     """
     one_dim = {
         key: np.asarray(val)
@@ -61,12 +60,12 @@ def save_sim_result_csv(path: str, out: dict[str, np.ndarray]) -> None:
 
 def main() -> None:
     # ============================================================
-    # (1) 설정 로드
+    # (1) Load configuration
     # ============================================================
     cfg = SimConfig()
 
     # ============================================================
-    # (2) Public demo input 생성 + 비행 로그 로드
+    # (2) Generate public demo input and load the flight log
     # ============================================================
     demo_flight_path = (
         PROJECT_ROOT
@@ -82,7 +81,7 @@ def main() -> None:
 
     flight = load_flight_csv(cfg.FLIGHT_CSV_PATH)
 
-    # 로그를 시간 기준으로 다운샘플링하여 ENU 웨이포인트 생성
+    # Downsample the log by time to generate ENU waypoints
     wps, twp = make_waypoints_from_csv(
         flight["t"],
         flight["lat"],
@@ -91,44 +90,44 @@ def main() -> None:
         downsample_sec=float(cfg.DOWNSAMPLE_SEC),
     )
 
-    # 시뮬레이션 종료 시간 설정
+    # Set simulation end time
     t_max = float(cfg.TMAX_SCALE) * float(twp[-1])
 
     # ============================================================
-    # (3) 외기 온도 입력 생성 (OAT)
+    # (3) Build outside-air-temperature input (OAT)
     # ============================================================
-    # 시뮬레이션 시간 축 생성
+    # Create the simulation time axis
     t_ref = np.arange(0.0, t_max + cfg.DT_SIM, cfg.DT_SIM, dtype=float)
 
-    # 로그 기반 OAT(t) 생성
+    # Build log-derived OAT(t)
     OAT_ref = build_oat_input(flight, t_ref, cfg)
 
-    # 로그 첫 고도를 절대 고도 기준점으로 설정
+    # Use the first logged altitude as the absolute-altitude reference
     alt0_abs_m = float(flight["alt"][0])
 
-    # rho 계산 함수 정의 (시간 + 절대고도 기반)
+    # Density callback based on simulation time and absolute altitude
     def rho_func(t_now: float, alt_abs_m: float) -> float:
         oat = float(np.interp(float(t_now), t_ref, OAT_ref))
         return float(compute_rho(float(alt_abs_m), oat))
 
     # ============================================================
-    # (4) Point-mass 파라미터 초기화
+    # (4) Initialize point-mass parameters
     # ============================================================
     p = ParamsPM(
         g=9.80665,
-        rho=1.225,                 # 초기 밀도 (루프에서 업데이트됨)
+        rho=1.225,  # Initial density; updated during simulation
         m=float(cfg.MASS_KG),
         S=float(cfg.S_WING),
         dt=float(cfg.DT_SIM),
     )
 
     # ============================================================
-    # (5) 속도 기반 파워 컨트롤러 생성
+    # (5) Initialize speed-based power controller
     # ============================================================
     power_ctrl = PowerController(cfg)
 
     # ============================================================
-    # (6) 프로펠러 surrogate 로드 + 파워트레인 생성
+    # (6) Load propeller surrogate and initialize powertrain
     # ============================================================
     prop = PropellerModel.load_surrogate(
         npz_path=cfg.PROP_NPZ_PATH,
@@ -145,7 +144,7 @@ def main() -> None:
     )
 
     # ============================================================
-    # (7) 비행 시뮬레이션 실행
+    # (7) Run flight simulation
     # ============================================================
     t_log_0 = flight["t"] - float(flight["t"][0])
     phase_log = flight.get("phase")
@@ -172,7 +171,7 @@ def main() -> None:
     print("Simulation completed.")
 
     # ============================================================
-    # (8) 결과 플롯
+    # (8) Plot results
     # ============================================================
     plot_demo(
         wps=wps,
@@ -181,7 +180,7 @@ def main() -> None:
     )
 
     # ============================================================
-    # (9) 간단 요약 출력
+    # (9) Print simulation summary
     # ============================================================
     print("\n=== Simulation Summary ===")
     print(f"Duration                  : {out['t'][-1] / 60.0:.2f} min")
