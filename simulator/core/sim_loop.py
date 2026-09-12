@@ -282,22 +282,29 @@ def simulate_flight(
     # MTOP(최대 이륙 출력) 누적 사용 시간 [s]
     mtop_used_s = 0.0
 
-    # 로그 기반 실제 IAS를 시뮬 시간축에 보간하기 위한 준비
-    use_real_ias = (
-        t_log is not None
-        and IAS_log is not None
-        and len(t_log) == len(IAS_log)
-        and len(t_log) >= 2
-    )
+    # Shared log time axis used by phase control and optional IAS diagnostics.
     t_log_arr = None
+    if t_log is not None and len(t_log) >= 1:
+        t_log_arr = np.asarray(t_log, dtype=float)
+
+    # IAS is optional and is used only for diagnostic comparison.
+    use_real_ias = (
+        t_log_arr is not None
+        and IAS_log is not None
+        and len(t_log_arr) == len(IAS_log)
+        and len(t_log_arr) >= 2
+    )
     IAS_log_arr = None
     if use_real_ias:
-        t_log_arr = np.asarray(t_log, dtype=float)
         IAS_log_arr = np.asarray(IAS_log, dtype=float)
 
-    # phase(time) → 속도제어 파라미터용 phase 문자열
+    # Optional phase labels used by phase-dependent control.
     phase_arr = None
-    if phase_log is not None and t_log is not None and len(phase_log) == len(t_log):
+    if (
+        phase_log is not None
+        and t_log_arr is not None
+        and len(phase_log) == len(t_log_arr)
+    ):
         phase_arr = np.asarray(phase_log)
 
     while t < float(t_max):

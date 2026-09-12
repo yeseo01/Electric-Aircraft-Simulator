@@ -23,7 +23,10 @@ def _make_test_config(tmp_path) -> SimConfig:
     )
     return cfg
 
-def _run_batch_simulation(cfg: SimConfig) -> dict[str, np.ndarray]:
+def _run_batch_simulation(
+    cfg: SimConfig,
+    include_ias: bool = True,
+) -> dict[str, np.ndarray]:
     flight = load_flight_csv(cfg.FLIGHT_CSV_PATH)
 
     wps, t_wps = make_waypoints_from_csv(
@@ -80,7 +83,7 @@ def _run_batch_simulation(cfg: SimConfig) -> dict[str, np.ndarray]:
             OAT_ref=oat_ref,
             alt0_abs_m=alt0_abs_m,
             t_log=t_log,
-            IAS_log=flight["IAS"],
+            IAS_log=flight["IAS"] if include_ias else None,
             phase_log=flight.get("phase"),
         )
 
@@ -130,3 +133,15 @@ def test_run_all_reaches_finished_state(tmp_path) -> None:
     assert sim.finished
     assert sim.step() is None
     assert frames[-1].timestamp >= frames[0].timestamp
+
+
+def test_batch_phase_control_does_not_require_ias_log(tmp_path) -> None:
+    cfg = _make_test_config(tmp_path)
+
+    batch_with_ias = _run_batch_simulation(cfg, include_ias=True)
+    batch_without_ias = _run_batch_simulation(cfg, include_ias=False)
+
+    assert np.array_equal(
+        batch_without_ias["phase_at_sim"],
+        batch_with_ias["phase_at_sim"],
+    )
