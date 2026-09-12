@@ -1,5 +1,5 @@
 # config.py
-# 시뮬레이션 결과를 저장하려면 SAVE_SIM_RESULT_CSV 값을 True로 변경하고 
+# 시뮬레이션 결과를 저장하려면 SAVE_SIM_RESULT_CSV 값을 True로 변경하고
 # SIM_RESULT_CSV_PATH 값을 원하는 경로, 원하는 파일명을 설정해야함.
 from dataclasses import dataclass, field
 from typing import Dict, Tuple
@@ -27,7 +27,7 @@ class SimConfig:
     PATH_PROGRESS_SPEED_RECOVERY_MAX_DELTA_KT: float = 3.0  # 기본 속도 대비 최대 보정폭 [kt]
 
     # ============================================================
-    # (디버깅용-삭제절대금지) 로그 출력 시간 범위
+    # Guidance debug logging
     # ============================================================
     WP_DIST_LOG_T_START_FRAC: float = 0.0   # 전체 시뮬 시간(=1)에서 이 비율 이후부터 로그 출력
     WP_DIST_LOG_T_END_FRAC: float = 1.0    # 전체 시뮬 시간(=1)에서 이 비율까지 로그 출력
@@ -39,8 +39,8 @@ class SimConfig:
     K: float = 0.035              # 유도 항력 계수 (induced drag factor)
     CL_MIN: float = -0.2          # 최소 양력계수 (하강 한계)
     CL_MAX: float = 1.6           # 최대 양력계수 (실속 근처 한계)
-    FLIGHT_DRAG_SCALE_APPROACH: float = 1.0   # 접근 구간 비행 항력 배율 // 1.45(10966), 1.0(10777), 1.0(10578)
-    FLIGHT_DRAG_SCALE_FINAL: float = 1.0    # 최종 접근 구간 비행 항력 배율 // 1.45(10966), 1.0(10777), 1.0(10578) 
+    FLIGHT_DRAG_SCALE_APPROACH: float = 1.0   # 접근 구간 비행 항력 배율
+    FLIGHT_DRAG_SCALE_FINAL: float = 1.0    # 최종 접근 구간 비행 항력 배율
 
     # ============================================================
     # Aircraft
@@ -69,7 +69,7 @@ class SimConfig:
     # 기본값 설정 (목표속도, 게인, 기본 파워)
     # ============================================================
     V_REF_KT: float = 70.0        # 목표 속도 [knots]
-    P_BASE_W: float = 35.0e3      # 기준 크루즈 파워 [W], 전체 파워 명령 체인의 공통 기본치 
+    P_BASE_W: float = 35.0e3      # 기준 크루즈 파워 [W], 전체 파워 명령 체인의 공통 기본치
     P_MIN_W: float = 1.0e3        # 최소 파워 제한 [W], 전체 파워 명령 체인의 공통 최소치
     KP_P: float = 4000.0          # 속도 오차 → 파워 변환 게인 // 시뮬레이터 튜닝값
     TAU_P: float = 2.0            # 파워 명령 LPF 시간상수 [s], 파워 응답 속도 조절용
@@ -77,8 +77,9 @@ class SimConfig:
     # ============================================================
     # 구간별 설정 (목표속도, 게인, 기본 파워)
     # ============================================================
+
     # 상승 전 지상 구간
-    PHASE_GROUND_BEFORE_CLIMB_VREF_KT: float = 50.0      # 목표 속도 (HANDBOOK: 50 KIAS) 
+    PHASE_GROUND_BEFORE_CLIMB_VREF_KT: float = 50.0      # 목표 속도 (HANDBOOK: 50 KIAS)
     PHASE_GROUND_BEFORE_CLIMB_P_BASE_W: float = 50.0e3    # 기본 파워 // 시뮬레이터 튜닝값
     PHASE_GROUND_BEFORE_CLIMB_KP_P: float = 4000.0       # 속도 오차 → 파워 변환 게인 // 시뮬레이터 튜닝값 (일단 지금은 기본값과 동일)
     GROUND_ROLL_BEFORE_CLIMB_MU_GROUND: float = 0.5     # 지상 마찰 계수 // 보통 0.6~0.8로 설정 -> 시뮬레이터 튜닝값
@@ -90,28 +91,28 @@ class SimConfig:
     PHASE_INITIAL_CLIMB_KP_P: float = 4000.0    # 속도 오차 → 파워 변환 게인 // 시뮬레이터 튜닝값 (일단 지금은 기본값과 동일)
 
     # 상승 구간 (300ft 이상)
-    PHASE_CLIMB_VREF_KT: float = 75.0       # 목표 속도 (HANDBOOK: 75 KIAS) 
-    PHASE_CLIMB_P_BASE_W: float = 49.2e3    # 기본 파워 (HANDBOOK: MCP 49.2 kW) 
+    PHASE_CLIMB_VREF_KT: float = 75.0       # 목표 속도 (HANDBOOK: 75 KIAS)
+    PHASE_CLIMB_P_BASE_W: float = 49.2e3    # 기본 파워 (HANDBOOK: MCP 49.2 kW)
     PHASE_CLIMB_KP_P: float = 4000.0        # 속도 오차 → 파워 변환 게인 // 시뮬레이터 튜닝값 (일단 지금은 기본값과 동일)
 
     # 크루즈 구간
-    PHASE_CRUISE_VREF_KT: float = 85.0       # 목표 속도 (HANDBOOK: 없음) // 70(10777), 85(10578), 90(10966)
-    PHASE_CRUISE_P_BASE_W: float = 20.0e3    # 기본 파워 (HANDBOOK: 20~36 kW) 
+    PHASE_CRUISE_VREF_KT: float = 85.0       # 목표 속도 [knots], 시뮬레이터 튜닝값
+    PHASE_CRUISE_P_BASE_W: float = 20.0e3    # 기본 파워 (HANDBOOK: 20~36 kW)
     PHASE_CRUISE_KP_P: float = 4000.0        # 속도 오차 → 파워 변환 게인 // 시뮬레이터 튜닝값
 
     # 접근 구간
     PHASE_APPROACH_VREF_KT: float = 65.0      # 목표 속도 (HANDBOOK: 65 KIAS)
-    PHASE_APPROACH_P_BASE_W: float = 0.0e3    # 기본 파워 (HANDBOOK: cut off) //1.0e3
+    PHASE_APPROACH_P_BASE_W: float = 0.0e3    # 기본 파워 (HANDBOOK: cut off)
     PHASE_APPROACH_KP_P: float = 4000.0        # 속도 오차 → 파워 변환 게인 // 시뮬레이터 튜닝값 (일단 지금은 기본값과 동일)
 
     # 최종 구간
-    PHASE_FINAL_VREF_KT: float = 60.0         # 목표 속도 (HANDBOOK: 60 KIAS) 
-    PHASE_FINAL_P_BASE_W: float = 0.0e3    # 기본 파워 (HANDBOOK: cut off) //1.0e3
+    PHASE_FINAL_VREF_KT: float = 60.0         # 목표 속도 (HANDBOOK: 60 KIAS)
+    PHASE_FINAL_P_BASE_W: float = 0.0e3    # 기본 파워 (HANDBOOK: cut off)
     PHASE_FINAL_KP_P: float = 4000.0        # 속도 오차 → 파워 변환 게인 // 시뮬레이터 튜닝값 (일단 지금은 기본값과 동일)
 
     # 하강 후 지상 구간: 제동 — 목표속도 0, 추력 최소화, 마찰 강화
-    PHASE_GROUND_AFTER_DESCENT_VREF_KT: float = 0.0     # 목표 속도 (HANDBOOK: 없음) 
-    PHASE_GROUND_AFTER_DESCENT_P_BASE_W: float = 1.0e3   # 기본 파워 (HANDBOOK: taxi수준) 
+    PHASE_GROUND_AFTER_DESCENT_VREF_KT: float = 0.0     # 목표 속도 (HANDBOOK: 없음)
+    PHASE_GROUND_AFTER_DESCENT_P_BASE_W: float = 1.0e3   # 기본 파워 (HANDBOOK: taxi수준)
     PHASE_GROUND_AFTER_DESCENT_KP_P: float = 4000.0      # 속도 오차 → 파워 변환 게인 // 시뮬레이터 튜닝값(일단 지금은 기본값과 동일)
     GROUND_ROLL_AFTER_DESCENT_MU_GROUND: float = 0.5       # 지상 마찰 계수 // 보통 0.6~0.8로 설정 -> 시뮬레이터 튜닝값
     GROUND_ROLL_AFTER_DESCENT_CD_GROUND: float = 0.1     # 지상 공기저항 계수 // 시뮬레이터 튜닝값
@@ -129,12 +130,12 @@ class SimConfig:
     # ============================================================
     # Altitude / gamma control
     # ============================================================
-    GAMMA_KP: float = 0.002       # 고도 오차 → gamma_cmd 비례 게인 // 0.004
-    GAMMA_MAX_DEG: float = 7.5    # 최대 상승/강하 경로각 제한 [deg] // 7.5
-    TAU_GAMMA: float = 1.0        # gamma 추종 1차 시간상수 [s] // 1.0
+    GAMMA_KP: float = 0.002       # 고도 오차 → gamma_cmd 비례 게인
+    GAMMA_MAX_DEG: float = 7.5    # 최대 상승/강하 경로각 제한 [deg]
+    TAU_GAMMA: float = 1.0        # gamma 추종 1차 응답 시간상수 [s]
 
     # ============================================================
-    # 베터리 모델 파라미터
+    # 배터리 모델 파라미터
     # ============================================================
     PARAMS: Dict[str, float] = field(default_factory=lambda: {
         "V_nom": 345.6,
@@ -173,10 +174,10 @@ class SimConfig:
     DEFAULT_OAT_C: float = 15.0          # 기본 외기온도 [°C]
 
     # ============================================================
-    # 베터리 초기값
+    # 배터리 초기값
     # ============================================================
-    INIT_SOC: float = 0.97    #0.99(10966) / 0.99(10777) / 0.97(10578)      # 초기 SOC
-    INIT_TEMP_C: float = 25.0 #29.0(10966) / 30(10777) / 25(10578)     # 초기 배터리 온도 [°C]
+    INIT_SOC: float = 0.97         # 초기 SOC
+    INIT_TEMP_C: float = 25.0      # 초기 배터리 온도 [°C]
 
     # ============================================================
     # Propulsion stabilization
@@ -190,7 +191,6 @@ class SimConfig:
     # ============================================================
     KT2MS: float = 1.0 / 1.943844  # knots -> m/s
     MS2KT: float = 1.943844        # m/s -> knots
-
 
     def __post_init__(self):
         self.V_REF_MS = self.V_REF_KT * self.KT2MS   # 목표 속도 [m/s]
