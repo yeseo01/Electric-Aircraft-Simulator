@@ -32,7 +32,6 @@ def _run_batch_simulation(cfg: SimConfig) -> dict[str, np.ndarray]:
         flight["lon"],
         flight["alt"],
         downsample_sec=float(cfg.DOWNSAMPLE_SEC),
-        phase=flight.get("phase"),
     )
 
     t_max = float(cfg.TMAX_SCALE) * float(t_wps[-1])

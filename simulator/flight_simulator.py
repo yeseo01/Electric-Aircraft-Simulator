@@ -56,7 +56,6 @@ class FlightSimulator:
             self.flight["lon"],
             self.flight["alt"],
             downsample_sec=float(cfg.DOWNSAMPLE_SEC),
-            phase=self.flight.get("phase"),
         )
         self.t_max = float(cfg.TMAX_SCALE) * float(self.t_wps[-1])
         self.t_ref = np.arange(0.0, self.t_max + cfg.DT_SIM, cfg.DT_SIM, dtype=float)

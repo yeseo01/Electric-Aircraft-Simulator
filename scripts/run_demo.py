@@ -97,7 +97,6 @@ def main():
         flight["lon"],
         flight["alt"],
         downsample_sec=float(cfg.DOWNSAMPLE_SEC),
-        phase=flight.get("phase"),
         )
 
     # 시뮬레이션 종료 시간 설정
