@@ -1,12 +1,4 @@
-# run_demo.py
-r'''
-실행방법:
-    로컬환경에서 sim폴더로 이동후 아래 명령어를 터미널에 순서대로 입력하기
-    1) python -m venv .venv
-    2) .venv\Scripts\activate (** mac 환경이면 -> source .venv/bin/activate)
-    3) pip install -r requirements.txt
-    4) python -m scripts.run_demo
-'''
+"""Run the public synthetic end-to-end simulator demo."""
 
 from __future__ import annotations
 
@@ -67,7 +59,7 @@ def save_sim_result_csv(path: str, out: dict[str, np.ndarray]) -> None:
             writer.writerow([one_dim[col][i] for col in cols])
 
 
-def main():
+def main() -> None:
     # ============================================================
     # (1) 설정 로드
     # ============================================================
@@ -97,7 +89,7 @@ def main():
         flight["lon"],
         flight["alt"],
         downsample_sec=float(cfg.DOWNSAMPLE_SEC),
-        )
+    )
 
     # 시뮬레이션 종료 시간 설정
     t_max = float(cfg.TMAX_SCALE) * float(twp[-1])
@@ -128,7 +120,7 @@ def main():
         m=float(cfg.MASS_KG),
         S=float(cfg.S_WING),
         dt=float(cfg.DT_SIM),
-        )
+    )
 
     # ============================================================
     # (5) 속도 기반 파워 컨트롤러 생성
@@ -144,13 +136,13 @@ def main():
         eta_fallback=cfg.ETA_FALLBACK_CONST,
         P_cap_W=cfg.P_MTOP_W,
         V_min_for_thrust=cfg.V_MIN_FOR_THRUST,
-        )
+    )
 
     powertrain = Powertrain(
         cfg=cfg,
         rho_func=rho_func,
         prop=prop,
-        )
+    )
 
     # ============================================================
     # (7) 비행 시뮬레이션 실행
