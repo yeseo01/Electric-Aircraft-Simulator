@@ -145,14 +145,14 @@ class Powertrain:
         # Advance the battery model using the requested electrical power.
         (
             soc_next,
-            temp_next,
+            temp_next_c,
             vp_next,
             Vdc,
             I_batt,
             P_elec_deliv,
         ) = self.batt.step_power(
             soc_k=st.soc,
-            temp_k=st.temp_c,
+            temp_c=st.temp_c,
             vp_k=st.vp_v,
             P_elec_demand_W=P_elec_demand_W,
             T_amb_C=float(Tamb_C),
@@ -237,6 +237,6 @@ class Powertrain:
             Vdc_V=float(Vdc),
             I_batt_A=float(I_batt),
             soc_next=float(soc_next),
-            temp_next_c=float(temp_next),
+            temp_next_c=float(temp_next_c),
             vp_next_v=float(vp_next),
         )
