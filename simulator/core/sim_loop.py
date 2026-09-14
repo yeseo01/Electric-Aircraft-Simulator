@@ -1,15 +1,19 @@
+"""Closed-loop aircraft dynamics and flight-simulation loop."""
+
 from __future__ import annotations
+
+from math import cos, sin, sqrt
 from typing import Dict, List
-from math import sin, cos, sqrt
+
 import numpy as np
 
 from ..config import SimConfig
-from ..schemas import State, ParamsPM
-from .utils import wrap_to_pi, clamp
-from .guidance import guidance_waypoints
-from .control import control_mu, control_gamma_cmd, PowerController
-from .aero import schedule_CL_for_gamma, aero_from_CL
 from ..powertrain.system import Powertrain, PowertrainState
+from ..schemas import ParamsPM, State
+from .aero import aero_from_CL, schedule_CL_for_gamma
+from .control import PowerController, control_gamma_cmd, control_mu
+from .guidance import guidance_waypoints
+from .utils import clamp, wrap_to_pi
 
 
 # ============================================================
@@ -27,8 +31,16 @@ def build_xy_progress_table(wps: np.ndarray) -> np.ndarray:
     return np.concatenate(([0.0], np.cumsum(seg_len)))
 
 
-def project_xy_progress(x: float, y: float, wps: np.ndarray, s_wps: np.ndarray) -> float:
-    """Project a 2D position onto the waypoint polyline and return cumulative path progress [m]."""
+def project_xy_progress(
+    x: float,
+    y: float,
+    wps: np.ndarray,
+    s_wps: np.ndarray,
+) -> float:
+    """Project a 2D position onto the waypoint polyline.
+
+    Returns the cumulative path progress along the polyline in meters.
+    """
     n = int(wps.shape[0])
     if n <= 1:
         return 0.0
@@ -78,8 +90,7 @@ def rhs(
     is_ground: bool,
     flight_drag_scale: float = 1.0,
     is_landing_roll: bool = False,
-    ) -> np.ndarray:
-
+) -> np.ndarray:
     """Evaluate the point-mass equations of motion.
 
     The state derivatives are:
@@ -151,7 +162,7 @@ def rhs(
 
         cos_gamma = max(1e-3, cos(gamma))
         gamma_dot = (L * cos(mu)) / (p.m * V) - (p.g / V) * cos(gamma)
-        beta_dot  = (L * sin(mu)) / (p.m * V * cos_gamma)
+        beta_dot = (L * sin(mu)) / (p.m * V * cos_gamma)
 
     return np.array([x_dot, y_dot, h_dot, V_dot, beta_dot, gamma_dot], dtype=float)
 
@@ -168,13 +179,56 @@ def rk4_step(
     is_ground: bool,
     flight_drag_scale: float = 1.0,
     is_landing_roll: bool = False,
-    ) -> np.ndarray:
-
+) -> np.ndarray:
     """Advance the state by one RK4 integration step."""
-    k1 = rhs(t, x, mu, gamma_cmd, p, thrust_N, cfg, is_ground, flight_drag_scale, is_landing_roll)
-    k2 = rhs(t + 0.5 * dt, x + 0.5 * dt * k1, mu, gamma_cmd, p, thrust_N, cfg, is_ground, flight_drag_scale, is_landing_roll)
-    k3 = rhs(t + 0.5 * dt, x + 0.5 * dt * k2, mu, gamma_cmd, p, thrust_N, cfg, is_ground, flight_drag_scale, is_landing_roll)
-    k4 = rhs(t + dt, x + dt * k3, mu, gamma_cmd, p, thrust_N, cfg, is_ground, flight_drag_scale, is_landing_roll)
+    k1 = rhs(
+        t,
+        x,
+        mu,
+        gamma_cmd,
+        p,
+        thrust_N,
+        cfg,
+        is_ground,
+        flight_drag_scale,
+        is_landing_roll,
+    )
+    k2 = rhs(
+        t + 0.5 * dt,
+        x + 0.5 * dt * k1,
+        mu,
+        gamma_cmd,
+        p,
+        thrust_N,
+        cfg,
+        is_ground,
+        flight_drag_scale,
+        is_landing_roll,
+    )
+    k3 = rhs(
+        t + 0.5 * dt,
+        x + 0.5 * dt * k2,
+        mu,
+        gamma_cmd,
+        p,
+        thrust_N,
+        cfg,
+        is_ground,
+        flight_drag_scale,
+        is_landing_roll,
+    )
+    k4 = rhs(
+        t + dt,
+        x + dt * k3,
+        mu,
+        gamma_cmd,
+        p,
+        thrust_N,
+        cfg,
+        is_ground,
+        flight_drag_scale,
+        is_landing_roll,
+    )
     return x + (dt / 6.0) * (k1 + 2 * k2 + 2 * k3 + k4)
 
 
@@ -196,8 +250,7 @@ def simulate_flight(
     t_log: np.ndarray | None = None,
     IAS_log: np.ndarray | None = None,
     phase_log: np.ndarray | None = None,
-    ) -> Dict[str, np.ndarray]:
-
+) -> Dict[str, np.ndarray]:
     """Run the closed-loop flight and powertrain simulation.
 
     At each simulation step:
@@ -225,7 +278,7 @@ def simulate_flight(
         V=float(cfg.V0),
         beta=beta0,
         gamma=gamma0,
-        )
+    )
 
     # Initialize powertrain state.
     pt_state = PowertrainState(
@@ -237,7 +290,6 @@ def simulate_flight(
     t = 1.0
     wp_idx = 1 if wps.shape[0] >= 2 else 0
     s_wps_xy = build_xy_progress_table(wps)
-
 
     # Simulation histories.
     times: List[float] = []
@@ -325,17 +377,33 @@ def simulate_flight(
         ):
             phase_for_log = ""
             if phase_arr is not None and t_log_arr is not None:
-                idx_phase_log = int(np.searchsorted(t_log_arr, float(t), side="right") - 1)
-                idx_phase_log = int(clamp(idx_phase_log, 0, len(phase_arr) - 1))
-                phase_for_log = (str(phase_arr[idx_phase_log]) or "").lower().strip()
+                idx_phase_log = int(
+                    np.searchsorted(t_log_arr, float(t), side="right") - 1
+                )
+                idx_phase_log = int(
+                    clamp(idx_phase_log, 0, len(phase_arr) - 1)
+                )
+                phase_for_log = (
+                    str(phase_arr[idx_phase_log]) or ""
+                ).lower().strip()
 
             t_wp_cur = float(t_wps[wp_idx])
-            t_wp_next = float(t_wps[wp_idx + 1]) if wp_idx < wps.shape[0] - 1 else float("nan")
+            t_wp_next = (
+                float(t_wps[wp_idx + 1])
+                if wp_idx < wps.shape[0] - 1
+                else float("nan")
+            )
             V_now_kt = float(st.V * cfg.MS2KT)
-            V_real_kt = float(np.interp(t, t_log_arr, IAS_log_arr)) if use_real_ias else float("nan")
+            V_real_kt = (
+                float(np.interp(t, t_log_arr, IAS_log_arr))
+                if use_real_ias
+                else float("nan")
+            )
             beta_now_deg = float(np.degrees(st.beta))
             beta_cmd_deg = float(np.degrees(g_out.beta_d))
-            beta_err_deg = float(np.degrees(wrap_to_pi(g_out.beta_d - st.beta)))
+            beta_err_deg = float(
+                np.degrees(wrap_to_pi(g_out.beta_d - st.beta))
+            )
 
             print(
                 f"[guidance] t={t:7.2f}s "
@@ -365,9 +433,15 @@ def simulate_flight(
         phase_now = ""
         control_phase = ""
         if phase_arr is not None and t_log_arr is not None:
-            idx_phase = int(np.searchsorted(t_log_arr, float(t), side="right") - 1)
-            idx_phase = int(clamp(idx_phase, 0, len(phase_arr) - 1))
-            phase_now = (str(phase_arr[idx_phase]) or "").lower().strip()
+            idx_phase = int(
+                np.searchsorted(t_log_arr, float(t), side="right") - 1
+            )
+            idx_phase = int(
+                clamp(idx_phase, 0, len(phase_arr) - 1)
+            )
+            phase_now = (
+                str(phase_arr[idx_phase]) or ""
+            ).lower().strip()
 
             if phase_now == "descent":
                 seen_descent = True
@@ -382,12 +456,16 @@ def simulate_flight(
                 if seen_descent:
                     is_landing_roll = True
                     control_phase = "landing_roll"
-                    V_ref_ms_phase = float(cfg.PHASE_GROUND_AFTER_DESCENT_VREF_KT * cfg.KT2MS)
+                    V_ref_ms_phase = float(
+                        cfg.PHASE_GROUND_AFTER_DESCENT_VREF_KT * cfg.KT2MS
+                    )
                     KP_phase = float(cfg.PHASE_GROUND_AFTER_DESCENT_KP_P)
                     P_base_phase = float(cfg.PHASE_GROUND_AFTER_DESCENT_P_BASE_W)
                 else:
                     control_phase = "ground_roll"
-                    V_ref_ms_phase = float(cfg.PHASE_GROUND_BEFORE_CLIMB_VREF_KT * cfg.KT2MS)
+                    V_ref_ms_phase = float(
+                        cfg.PHASE_GROUND_BEFORE_CLIMB_VREF_KT * cfg.KT2MS
+                    )
                     KP_phase = float(cfg.PHASE_GROUND_BEFORE_CLIMB_KP_P)
                     P_base_phase = float(cfg.PHASE_GROUND_BEFORE_CLIMB_P_BASE_W)
 
@@ -400,7 +478,9 @@ def simulate_flight(
                 )
                 if is_initial_climb:
                     control_phase = "initial_climb"
-                    V_ref_ms_phase = float(cfg.PHASE_INITIAL_CLIMB_VREF_KT * cfg.KT2MS)
+                    V_ref_ms_phase = float(
+                        cfg.PHASE_INITIAL_CLIMB_VREF_KT * cfg.KT2MS
+                    )
                     KP_phase = float(cfg.PHASE_INITIAL_CLIMB_KP_P)
                     P_base_phase = float(cfg.PHASE_INITIAL_CLIMB_P_BASE_W)
                 else:
@@ -440,13 +520,31 @@ def simulate_flight(
             and len(s_wps_xy) == len(t_wps)
             and len(s_wps_xy) >= 2
         ):
-            s_ref = float(np.interp(float(t), np.asarray(t_wps, dtype=float), s_wps_xy))
+            s_ref = float(
+                np.interp(
+                    float(t),
+                    np.asarray(t_wps, dtype=float),
+                    s_wps_xy,
+                )
+            )
             s_now = float(project_xy_progress(st.x, st.y, wps, s_wps_xy))
             s_err = s_ref - s_now
             gain = float(getattr(cfg, "PATH_PROGRESS_SPEED_RECOVERY_GAIN", 0.02))
-            max_delta_ms = float(getattr(cfg, "PATH_PROGRESS_SPEED_RECOVERY_MAX_DELTA_KT", 15.0)) * float(cfg.KT2MS)
+            max_delta_ms = float(
+                getattr(
+                    cfg,
+                    "PATH_PROGRESS_SPEED_RECOVERY_MAX_DELTA_KT",
+                    15.0,
+                )
+            ) * float(cfg.KT2MS)
             v_ref_corr = float(V_ref_ms_phase) + gain * s_err
-            V_ref_ms_phase = float(np.clip(v_ref_corr, float(V_ref_ms_phase) - max_delta_ms, float(V_ref_ms_phase) + max_delta_ms))
+            V_ref_ms_phase = float(
+                np.clip(
+                    v_ref_corr,
+                    float(V_ref_ms_phase) - max_delta_ms,
+                    float(V_ref_ms_phase) + max_delta_ms,
+                )
+            )
 
         P_cmd_raw = float(
             power_ctrl(
@@ -461,11 +559,21 @@ def simulate_flight(
 
         # Apply phase- and duration-dependent power limits.
         phase_for_cap = control_phase
-        mtop_allowed_phases = {str(p).lower().strip() for p in cfg.MTOP_ALLOWED_PHASES}
+        mtop_allowed_phases = {
+            str(p).lower().strip()
+            for p in cfg.MTOP_ALLOWED_PHASES
+        }
         mtop_phase_allowed = phase_for_cap in mtop_allowed_phases
-        mtop_time_left_s = max(0.0, float(cfg.MTOP_MAX_DURATION_S) - float(mtop_used_s))
+        mtop_time_left_s = max(
+            0.0,
+            float(cfg.MTOP_MAX_DURATION_S) - float(mtop_used_s),
+        )
         allow_mtop_now = mtop_phase_allowed and (mtop_time_left_s > 0.0)
-        p_cap_now = float(cfg.P_MTOP_W if allow_mtop_now else cfg.P_MCP_W)
+        p_cap_now = float(
+            cfg.P_MTOP_W
+            if allow_mtop_now
+            else cfg.P_MCP_W
+        )
 
         P_min_use = float(cfg.P_MIN_W)
         P_cmd_raw = float(np.clip(P_cmd_raw, P_min_use, p_cap_now))
@@ -488,12 +596,30 @@ def simulate_flight(
 
         # Integrate the aircraft state.
         st = State.from_vec(
-            rk4_step(t, st.vec(), mu, gamma_cmd, dt, p, T_now, cfg, is_ground, flight_drag_scale, is_landing_roll)
+            rk4_step(
+                t,
+                st.vec(),
+                mu,
+                gamma_cmd,
+                dt,
+                p,
+                T_now,
+                cfg,
+                is_ground,
+                flight_drag_scale,
+                is_landing_roll,
+            )
         )
         st.beta = wrap_to_pi(st.beta)
 
         # Clamp airspeed for numerical stability.
-        st.V = float(clamp(st.V, float(cfg.V_MIN_MS), float(cfg.V_MAX_MS)))
+        st.V = float(
+            clamp(
+                st.V,
+                float(cfg.V_MIN_MS),
+                float(cfg.V_MAX_MS),
+            )
+        )
 
         # Update the powertrain state.
         pt_state = PowertrainState(
