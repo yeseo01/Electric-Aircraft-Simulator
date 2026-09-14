@@ -1,18 +1,15 @@
-# powertrain/prop.py
+"""Propeller surrogate model based on advance-ratio interpolation."""
+
 from __future__ import annotations
+
 from typing import Tuple
+
 import numpy as np
 from scipy.interpolate import interp1d
 
 
 class PropellerModel:
-    """
-    Cp(J), eta(J) surrogate 기반 프로펠러 모델
-
-    사용 흐름:
-      1) load_surrogate()
-      2) evaluate(rpm, V, rho)
-    """
+    """Evaluate propeller performance from Cp(J) and efficiency surrogates."""
 
     def __init__(
         self,
@@ -23,8 +20,7 @@ class PropellerModel:
         J_max: float,
         V_min_for_thrust: float,
         P_cap_W: float,
-        ):
-        
+    ):
         self.Cp_func = Cp_func
         self.eta_func = eta_func
         self.Dp = float(Dp)
@@ -34,31 +30,31 @@ class PropellerModel:
         self.P_cap_W = float(P_cap_W)
 
     @staticmethod
-    def load_surrogate(npz_path: str,
-                       eta_clip: Tuple[float, float],
-                       eta_fallback: float,
-                       P_cap_W: float,
-                       V_min_for_thrust: float):
-        """
-        NPZ에서 Cp(J), eta(J) 로드 후 PropellerModel 생성
-        """
+    def load_surrogate(
+        npz_path: str,
+        eta_clip: Tuple[float, float],
+        eta_fallback: float,
+        P_cap_W: float,
+        V_min_for_thrust: float,
+    ):
+        """Load Cp(J) and eta(J) surrogate data from an NPZ file."""
         data = np.load(npz_path, allow_pickle=True)
 
-        # J grid
+        # Load the advance-ratio grid.
         if "J" in data:
             Jg = data["J"].astype(float)
         elif "Jp" in data:
             Jg = data["Jp"].astype(float)
         else:
-            raise KeyError("NPZ에 J 또는 Jp가 없습니다.")
+            raise KeyError("NPZ file must contain either 'J' or 'Jp'.")
 
         Cpg = data["Cp"].astype(float)
 
-        # eta
+        # Load propeller efficiency, falling back to a constant if absent.
         eta_key = None
-        for k in ["eta", "Eta", "ETA"]:
-            if k in data:
-                eta_key = k
+        for key in ["eta", "Eta", "ETA"]:
+            if key in data:
+                eta_key = key
                 break
 
         if eta_key is None:
@@ -68,23 +64,31 @@ class PropellerModel:
 
         Dp = float(data["D_PROP"]) if "D_PROP" in data else 1.64
 
-        # 정렬
+        # Sort surrogate samples by advance ratio.
         order = np.argsort(Jg)
         Jg = Jg[order]
         Cpg = Cpg[order]
         etag = etag[order]
 
-        # 클립
+        # Keep surrogate values within configured numerical bounds.
         Cpg = np.clip(Cpg, 1e-6, 10.0)
         etag = np.clip(etag, eta_clip[0], eta_clip[1])
 
-        Cp_func = interp1d(Jg, Cpg, kind="linear",
-                           bounds_error=False,
-                           fill_value=(float(Cpg[0]), float(Cpg[-1])))
+        Cp_func = interp1d(
+            Jg,
+            Cpg,
+            kind="linear",
+            bounds_error=False,
+            fill_value=(float(Cpg[0]), float(Cpg[-1])),
+        )
 
-        eta_func = interp1d(Jg, etag, kind="linear",
-                            bounds_error=False,
-                            fill_value=(float(etag[0]), float(etag[-1])))
+        eta_func = interp1d(
+            Jg,
+            etag,
+            kind="linear",
+            bounds_error=False,
+            fill_value=(float(etag[0]), float(etag[-1])),
+        )
 
         return PropellerModel(
             Cp_func=Cp_func,
@@ -96,23 +100,21 @@ class PropellerModel:
             P_cap_W=P_cap_W,
         )
 
-    # ------------------------------------------------------------
-    # main evaluation
-    # ------------------------------------------------------------
-    def evaluate(self,
-                 rpm: float,
-                 V_ms: float,
-                 rho: float):
-        """
-        rpm, V, rho → (P_prop, T, J)
+    def evaluate(
+        self,
+        rpm: float,
+        V_ms: float,
+        rho: float,
+    ):
+        """Evaluate propeller power, thrust, and advance ratio.
 
-        수식:
-          n = rpm/60
-          J = V/(nD)
-          P_prop = rho * n^3 * D^5 * Cp(J)
-          T = eta(J) * P_prop / V_eff
-        """
+        The model uses:
 
+            n = rpm / 60
+            J = V / (n D)
+            P_prop = rho * n^3 * D^5 * Cp(J)
+            T = eta(J) * P_prop / V_eff
+        """
         V = float(max(0.0, V_ms))
         rho = float(max(1e-6, rho))
         rpm = float(max(0.0, rpm))
