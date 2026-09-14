@@ -17,7 +17,7 @@ from ..powertrain.system import Powertrain, PowertrainState
 # ============================================================
 
 def build_xy_progress_table(wps: np.ndarray) -> np.ndarray:
-    """2D waypoint polyline의 누적 수평거리 [m]."""
+    """Return cumulative horizontal distance along a 2D waypoint polyline [m]."""
     if len(wps) == 0:
         return np.zeros(0, dtype=float)
     if len(wps) == 1:
@@ -28,9 +28,7 @@ def build_xy_progress_table(wps: np.ndarray) -> np.ndarray:
 
 
 def project_xy_progress(x: float, y: float, wps: np.ndarray, s_wps: np.ndarray) -> float:
-    """
-    현재 2D 위치를 waypoint polyline에 사영해 누적 진행거리 s_now [m]를 반환.
-    """
+    """Project a 2D position onto the waypoint polyline and return cumulative path progress [m]."""
     n = int(wps.shape[0])
     if n <= 1:
         return 0.0
@@ -82,39 +80,40 @@ def rhs(
     is_landing_roll: bool = False,
     ) -> np.ndarray:
 
-    """
-    point-mass ODE (3-DOF navigation + point-mass):
+    """Evaluate the point-mass equations of motion.
 
-      x_dot = V cos(gamma) cos(beta)
-      y_dot = V cos(gamma) sin(beta)
-      h_dot = V sin(gamma)
+    The state derivatives are:
 
-      V_dot     = (T - D)/m - g sin(gamma)
-      gamma_dot = (L cos(mu))/(mV) - (g/V) cos(gamma)
-      beta_dot  = (L sin(mu))/(mV cos(gamma))
+        x_dot = V cos(gamma) cos(beta)
+        y_dot = V cos(gamma) sin(beta)
+        h_dot = V sin(gamma)
 
-    - 여기서는 gamma_cmd를 따라가게 만들기 위해 CL을 스케줄링하고,
-      그 CL로 L,D를 계산해서 EOM에 넣는다.
+        V_dot     = (T - D) / m - g sin(gamma)
+        gamma_dot = (L cos(mu)) / (m V) - (g / V) cos(gamma)
+        beta_dot  = (L sin(mu)) / (m V cos(gamma))
+
+    Lift coefficient is scheduled to track ``gamma_cmd``, and the
+    resulting lift and drag forces are applied to the equations of motion.
     """
     st = State.from_vec(x)
 
-    # 지상/비행 모드에 따라 다른 동역학 사용
+    # Use separate dynamics for ground and flight phases.
     if is_ground:
-        # 현재는 간단한 지상 모델만 사용
+        # Use a simplified ground-dynamics model.
         V = max(1e-3, float(st.V))
         beta = float(st.beta)
 
         m = float(p.m)
         g = float(p.g)
         if is_landing_roll:
-            # 하강 후 지상: 브레이크 마찰, 공기저항 강화
+            # Landing roll: apply braking friction and increased aerodynamic drag.
             mu_ground = float(cfg.GROUND_ROLL_AFTER_DESCENT_MU_GROUND)
             Cd_ground = float(cfg.GROUND_ROLL_AFTER_DESCENT_CD_GROUND)
         else:
-            # 상승 전 지상 구간(이륙 롤): config에서 설정한 기본 마찰/공기저항 사용
+            # Takeoff roll: use the configured ground-friction and drag parameters.
             mu_ground = float(cfg.GROUND_ROLL_BEFORE_CLIMB_MU_GROUND)
             Cd_ground = float(cfg.GROUND_ROLL_BEFORE_CLIMB_CD_GROUND)
-        # 수정전: F_ground = mu_ground * m * g
+
         CL_ground, _ = schedule_CL_for_gamma(st, mu, gamma_cmd, p, cfg)
         q_ground = 0.5 * float(p.rho) * V * V
         L_est = q_ground * p.S * float(CL_ground)
@@ -128,15 +127,15 @@ def rhs(
 
         T = float(thrust_N)
         V_dot = (T - F_ground - F_drag) / m
-        # 지상활주에서도 heading 제어 입력(mu)이 반영되도록 yaw-rate 모델 적용
+        # Apply a yaw-rate approximation so bank command affects ground heading.
         beta_dot = (p.g / V) * np.tan(mu)
         gamma_dot = 0.0
     else:
-        # 비행 구간: 기존 point-mass EOM
-        # (1) gamma_cmd 추종용 CL 스케줄링
+        # Flight phase: point-mass equations of motion.
+        # Schedule CL to track the flight-path-angle command.
         CL_req, _ = schedule_CL_for_gamma(st, mu, gamma_cmd, p, cfg)
 
-        # (2) 공력 및 thrust 반영
+        # Compute aerodynamic forces and apply thrust.
         L, D, T, _ = aero_from_CL(st.V, p.rho, p, CL_req, thrust_N, cfg)
         D *= float(max(0.1, flight_drag_scale))
 
@@ -171,7 +170,7 @@ def rk4_step(
     is_landing_roll: bool = False,
     ) -> np.ndarray:
 
-    """RK4 1-step 적분"""
+    """Advance the state by one RK4 integration step."""
     k1 = rhs(t, x, mu, gamma_cmd, p, thrust_N, cfg, is_ground, flight_drag_scale, is_landing_roll)
     k2 = rhs(t + 0.5 * dt, x + 0.5 * dt * k1, mu, gamma_cmd, p, thrust_N, cfg, is_ground, flight_drag_scale, is_landing_roll)
     k3 = rhs(t + 0.5 * dt, x + 0.5 * dt * k2, mu, gamma_cmd, p, thrust_N, cfg, is_ground, flight_drag_scale, is_landing_roll)
@@ -199,23 +198,22 @@ def simulate_flight(
     phase_log: np.ndarray | None = None,
     ) -> Dict[str, np.ndarray]:
 
-    """
-    폐루프 시뮬레이션 루프
+    """Run the closed-loop flight and powertrain simulation.
 
-    각 스텝:
-      1) rho 업데이트 (alt_abs, OAT 기반)
-      2) guidance -> (beta_d, h_d)
-      3) control -> (mu, gamma_cmd)
-      4) power controller -> P_shaft_cmd
-      5) powertrain.step -> thrust + battery update
-      6) RK4 적분
-      7) 로그 저장
+    At each simulation step:
+        1. Update absolute altitude and air density.
+        2. Compute waypoint-guidance targets.
+        3. Compute flight-control commands.
+        4. Compute the shaft-power command.
+        5. Advance the powertrain and battery models.
+        6. Integrate the aircraft state with RK4.
+        7. Record simulation outputs.
     """
-    # 초기 상태 (첫 waypoint에서 시작)
+    # Initialize the aircraft state at the first waypoint.
     beta0 = 0.0
     gamma0 = 0.0
     if wps.shape[0] >= 2:
-        k_dir = min(wps.shape[0] - 1, 1)  # ground_roll이 어느 정도 진행된 지점 사용
+        k_dir = min(wps.shape[0] - 1, 1)  # Use the next waypoint to initialize ground-roll heading.
         dx = float(wps[k_dir, 0] - wps[0, 0])
         dy = float(wps[k_dir, 1] - wps[0, 1])
         beta0 = float(np.arctan2(dy, dx))
@@ -229,7 +227,7 @@ def simulate_flight(
         gamma=gamma0,
         )
 
-    # powertrain state
+    # Initialize powertrain state.
     pt_state = PowertrainState(
         soc=float(cfg.INIT_SOC),
         temp_c=float(cfg.INIT_TEMP_C),
@@ -241,7 +239,7 @@ def simulate_flight(
     s_wps_xy = build_xy_progress_table(wps)
 
 
-    # logs
+    # Simulation histories.
     times: List[float] = []
     states: List[np.ndarray] = []
 
@@ -260,7 +258,7 @@ def simulate_flight(
     rho_hist: List[float] = []
     alt_abs_hist: List[float] = []
 
-    # battery/power logs
+    # Battery and power histories.
     SOC_hist: List[float] = []
     Temp_hist: List[float] = []
     Vp_hist: List[float] = []
@@ -272,14 +270,14 @@ def simulate_flight(
     P_shaft_hist: List[float] = []
     P_prop_hist: List[float] = []
 
-    # phase at sim time
+    # Phase history at simulation times.
     phase_hist: List[str] = []
 
-    # 하강 후 지상(랜딩 롤) 구간 판별용
+    # Track whether a subsequent ground-roll phase is a landing roll.
     seen_descent = False
     phase_prev = ""
     climb_start_h = float(st.h)
-    # MTOP(최대 이륙 출력) 누적 사용 시간 [s]
+    # Cumulative maximum-takeoff-power usage [s].
     mtop_used_s = 0.0
 
     # Shared log time axis used by phase control and optional IAS diagnostics.
@@ -310,16 +308,16 @@ def simulate_flight(
     while t < float(t_max):
         dt = float(cfg.DT_SIM)
 
-        # (1) abs altitude & rho update (for aero scheduling)
+        # Update absolute altitude and air density.
         alt_abs = float(alt0_abs_m + st.h)
         Tamb = float(np.interp(t, t_ref, OAT_ref))
         p.rho = float(powertrain.rho_func(t, alt_abs))
 
-        # (2) guidance
+        # Compute guidance targets.
         g_out = guidance_waypoints(st, wps, wp_idx, cfg, t, t_wps)
         wp_idx = int(g_out.wp_idx)
 
-        # (디버깅용-삭제절대금지)
+        # Optional guidance diagnostics within the configured logging window.
         t_norm = float(t) / float(t_max) if t_max > 0.0 else 0.0
         if (
             t_norm >= float(cfg.WP_DIST_LOG_T_START_FRAC)
@@ -350,14 +348,14 @@ def simulate_flight(
                 f"| phase={phase_for_log}"
             )
 
-        # (3) control
+        # Compute flight-control commands.
         mu = control_mu(st, g_out.beta_d, p, cfg)
         gamma_cmd = control_gamma_cmd(st, g_out.h_d, cfg)
 
-        # (4) 현재 CL/CD
+        # Compute the current lift and drag coefficients.
         CL_now, CD_now = schedule_CL_for_gamma(st, mu, gamma_cmd, p, cfg)
 
-        # (5) power controller
+        # Apply phase-dependent power control.
         V_ref_ms_phase = None
         KP_phase = None
         P_base_phase = None
@@ -461,7 +459,7 @@ def simulate_flight(
             )
         )
 
-        # phase/time 기반 power cap
+        # Apply phase- and duration-dependent power limits.
         phase_for_cap = control_phase
         mtop_allowed_phases = {str(p).lower().strip() for p in cfg.MTOP_ALLOWED_PHASES}
         mtop_phase_allowed = phase_for_cap in mtop_allowed_phases
@@ -475,7 +473,7 @@ def simulate_flight(
         if allow_mtop_now and P_cmd_raw > float(cfg.P_MCP_W):
             mtop_used_s += min(float(cfg.DT_SIM), mtop_time_left_s)
 
-        # (6) powertrain step
+        # Advance the powertrain model.
         pt_out = powertrain.step(
             t_now=t,
             V_ms=float(st.V),
@@ -488,26 +486,26 @@ def simulate_flight(
 
         T_now = float(pt_out.thrust_N)
 
-        # (7) integrate
+        # Integrate the aircraft state.
         st = State.from_vec(
             rk4_step(t, st.vec(), mu, gamma_cmd, dt, p, T_now, cfg, is_ground, flight_drag_scale, is_landing_roll)
         )
         st.beta = wrap_to_pi(st.beta)
 
-        # clamp V for stability
+        # Clamp airspeed for numerical stability.
         st.V = float(clamp(st.V, float(cfg.V_MIN_MS), float(cfg.V_MAX_MS)))
 
-        # update powertrain internal state
+        # Update the powertrain state.
         pt_state = PowertrainState(
             soc=float(pt_out.soc_next),
             temp_c=float(pt_out.temp_next_c),
             vp_v=float(pt_out.vp_next_v),
         )
 
-        # advance time
+        # Advance simulation time.
         t += dt
 
-        # (8) logs
+        # Record simulation outputs.
         times.append(t)
         states.append(st.vec())
 
@@ -543,7 +541,7 @@ def simulate_flight(
 
         phase_hist.append(control_phase if control_phase else phase_now)
 
-        # 종료 조건
+        # Termination conditions.
         if wp_idx >= wps.shape[0] - 1:
             break
 
@@ -572,7 +570,7 @@ def simulate_flight(
         "rho": np.asarray(rho_hist, dtype=float),
         "alt_abs": np.asarray(alt_abs_hist, dtype=float),
 
-        # battery/power logs
+        # Battery and power histories.
         "SOC": np.asarray(SOC_hist, dtype=float),
         "Temp": np.asarray(Temp_hist, dtype=float),
         "Vp": np.asarray(Vp_hist, dtype=float),
@@ -584,6 +582,6 @@ def simulate_flight(
         "P_shaft": np.asarray(P_shaft_hist, dtype=float),
         "P_prop": np.asarray(P_prop_hist, dtype=float),
 
-        # phase at simulation times
+        # Phase at each simulation timestamp.
         "phase_at_sim": np.asarray(phase_hist, dtype=str),
     }
