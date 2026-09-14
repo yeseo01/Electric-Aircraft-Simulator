@@ -1,6 +1,9 @@
-# powertrain/rpm_solve.py
+"""Utilities for shaft-power limits and RPM inversion."""
+
 from __future__ import annotations
+
 from typing import Callable, Tuple
+
 import numpy as np
 
 
@@ -12,16 +15,17 @@ def power_cap_at_rpm_safe(
     J_min: float,
     J_max: float,
     rpm_safe: float,
-    ) -> float:
-    """
-    RPM_SAFE에서 만들 수 있는 최대 샤프트 파워 P_cap을 계산한다.
+) -> float:
+    """Compute the shaft-power limit available at the safe RPM bound.
 
-    P(rpm) = rho * n^3 * D^5 * Cp(J(rpm))
-    J(rpm) = V / (n*D), n=rpm/60
+    The propeller-power relation is:
 
-    목적:
-      - P_cmd를 이 값으로 캡하면,
-        rpm 역산(bisection)이 [RPM_SOLVE_MIN, RPM_SAFE]에서 bracket 되도록 보장하는 데 유리.
+        P(rpm) = rho * n^3 * D^5 * Cp(J(rpm))
+        J(rpm) = V / (n * D)
+        n = rpm / 60
+
+    Capping the requested shaft power at this value helps keep the
+    inverse RPM solve bracketed within the configured RPM interval.
     """
     Vk = float(max(0.0, V_ms))
     rhok = float(max(1e-6, rho))
@@ -30,12 +34,18 @@ def power_cap_at_rpm_safe(
     n = max(1e-3, float(rpm_safe) / 60.0)
 
     J_raw = Vk / max(1e-6, n * Dp)
-    J = float(np.clip(J_raw, float(J_min), float(J_max)))
+    J = float(
+        np.clip(
+            J_raw,
+            float(J_min),
+            float(J_max),
+        )
+    )
 
     Cp = float(Cp_func(J))
     Cp = max(1e-6, Cp)
 
-    return float(rhok * (n ** 3) * (Dp ** 5) * Cp)
+    return float(rhok * (n**3) * (Dp**5) * Cp)
 
 
 def solve_rpm_from_power_bisect_scalar(
@@ -51,40 +61,54 @@ def solve_rpm_from_power_bisect_scalar(
     P_cap_W: float,
     iters: int = 28,
 ) -> Tuple[float, bool]:
-    """
-    목표 샤프트 파워 P_shaft_W를 만족하는 rpm을 bisection으로 역산한다.
+    """Solve for RPM corresponding to a target shaft power by bisection.
 
-    정의:
-      P(rpm) = rho * n^3 * D^5 * Cp(J(rpm))
-      J(rpm) = V / (n*D)
+    The power relation is:
 
-    입력:
-      - rpm_lo ~ rpm_hi 구간에서 해를 찾는다 (보통 [RPM_SOLVE_MIN, RPM_SAFE])
-      - P_cap_W: 안전 상한(예: MTOP), P_shaft_W가 너무 큰 경우 클립/진단용
+        P(rpm) = rho * n^3 * D^5 * Cp(J(rpm))
+        J(rpm) = V / (n * D)
 
-    반환:
-      - rpm 추정값
-      - bracket_ok: True이면 P_lo <= P_target <= P_hi 를 만족(정상 bisection)
-                   False이면 bracket 실패(해가 구간 밖), 가까운 끝점을 반환
+    The solution is searched over ``[rpm_lo, rpm_hi]``. ``P_cap_W``
+    limits the requested shaft power before solving.
+
+    Returns:
+        A tuple containing the estimated RPM and ``bracket_ok`` flag.
+        ``bracket_ok`` is ``True`` when the target power lies between
+        the powers evaluated at the two RPM bounds. If the target is
+        outside the bracket, the nearer endpoint is returned with
+        ``bracket_ok=False``.
     """
     Vk = float(max(0.0, V_ms))
     rhok = float(max(1e-6, rho))
     Dp = float(Dp)
 
-    # 파워 입력 클립 (안전)
-    Pk = float(np.clip(P_shaft_W, 0.0, float(P_cap_W)))
+    # Clamp the requested shaft power to the configured safety bound.
+    Pk = float(
+        np.clip(
+            P_shaft_W,
+            0.0,
+            float(P_cap_W),
+        )
+    )
 
-    # 저속/저파워에서는 최소 rpm 반환 (발산 방지)
+    # Return the minimum RPM at very low power or airspeed.
     if Pk < 50.0 or Vk < 1.0:
         return float(rpm_lo), True
 
     def P_of_rpm(rpm: float) -> float:
         n = max(1e-3, float(rpm) / 60.0)
         J_raw = Vk / max(1e-6, n * Dp)
-        J = float(np.clip(J_raw, float(J_min), float(J_max)))
+        J = float(
+            np.clip(
+                J_raw,
+                float(J_min),
+                float(J_max),
+            )
+        )
         Cp = float(Cp_func(J))
         Cp = max(1e-6, Cp)
-        return rhok * (n ** 3) * (Dp ** 5) * Cp
+
+        return rhok * (n**3) * (Dp**5) * Cp
 
     lo = float(rpm_lo)
     hi = float(rpm_hi)
@@ -92,9 +116,13 @@ def solve_rpm_from_power_bisect_scalar(
     P_lo = P_of_rpm(lo)
     P_hi = P_of_rpm(hi)
 
-    # bracket 실패 시: 더 가까운 끝점을 반환
+    # If the target is outside the bracket, return the nearer endpoint.
     if not (P_lo <= Pk <= P_hi):
-        rpm_best = lo if abs(Pk - P_lo) < abs(Pk - P_hi) else hi
+        rpm_best = (
+            lo
+            if abs(Pk - P_lo) < abs(Pk - P_hi)
+            else hi
+        )
         return float(rpm_best), False
 
     for _ in range(int(iters)):
