@@ -1,11 +1,14 @@
-# aero.py
+"""Aerodynamic-force calculations and lift-coefficient scheduling."""
+
 from __future__ import annotations
-from typing import Tuple
+
 from math import cos
+from typing import Tuple
+
 import numpy as np
 
 from ..config import SimConfig
-from ..schemas import State, ParamsPM
+from ..schemas import ParamsPM, State
 
 
 def aero_from_CL(
@@ -16,33 +19,29 @@ def aero_from_CL(
     thrust_N: float,
     cfg: SimConfig,
 ) -> Tuple[float, float, float, float]:
+    """Compute aerodynamic forces from a specified lift coefficient.
 
-    """
-    단순 공력:
-      CD = CD0 + K*CL^2
-      L  = q S CL
-      D  = q S CD
+    The aerodynamic model uses a simple parabolic drag polar:
 
-    입력:
-      - V: 속도 [m/s]
-      - rho: 공기 밀도 [kg/m^3]
-      - p: point-mass params (S 사용)
-      - CL: 양력계수
-      - thrust_N: 추진 블록에서 계산된 추력 [N]
-      - cfg: SimConfig (CD0, K 등 사용)
+        CD = CD0 + K * CL^2
+        L = q * S * CL
+        D = q * S * CD
 
-    출력:
-      - L [N], D [N], T [N], CD [-]
+    where ``q`` is dynamic pressure.
+
+    Returns:
+        Lift [N], drag [N], thrust [N], and drag coefficient [-].
     """
     V = float(max(1e-3, V))
     rho = float(max(1e-6, rho))
 
     q = 0.5 * rho * V * V
-    CD  = float(max(1e-4, cfg.CD0 + cfg.K * (CL ** 2)))
+    CD = float(max(1e-4, cfg.CD0 + cfg.K * (CL ** 2)))
 
     L = q * p.S * float(CL)
     D = q * p.S * CD
     T = float(max(0.0, thrust_N))
+
     return float(L), float(D), float(T), float(CD)
 
 
@@ -52,38 +51,56 @@ def schedule_CL_for_gamma(
     gamma_cmd: float,
     p: ParamsPM,
     cfg: SimConfig,
-    ) -> Tuple[float, float]:
-    
-    """
-    gamma가 gamma_cmd를 1차로 따라가게 만들기 위해 필요한 CL을 스케줄링한다.
+) -> Tuple[float, float]:
+    """Schedule lift coefficient to track a flight-path-angle command.
 
-    아이디어:
-      - 원하는 gamma_dot: (gamma_cmd - gamma) / TAU_GAMMA
-      - point-mass (단순) 관계:
-          gamma_dot = (L cos(mu))/(mV) - (g/V) cos(gamma)
+    A first-order tracking target is used:
 
-      -> gamma_dot를 gamma_dot_cmd에 맞추도록 L_req 역산
-      -> CL_req = L_req / (q S)
+        gamma_dot_cmd = (gamma_cmd - gamma) / TAU_GAMMA
 
-    주의:
-      - 엄밀한 trim이 아니라 안정적인 추종을 위한 제어용 스케줄링
-      - CL은 cfg.CL_MIN/CL_MAX로 제한
+    With the point-mass relation
+
+        gamma_dot = L * cos(mu) / (m * V) - g * cos(gamma) / V
+
+    the required lift is solved and converted to ``CL``. The resulting
+    coefficient is limited to ``CL_MIN`` and ``CL_MAX``.
+
+    This is a control-oriented scheduling approximation rather than a
+    full aerodynamic trim solution.
     """
     V = float(max(1e-3, st.V))
     rho = float(max(1e-6, p.rho))
     q = 0.5 * rho * V * V
 
     tau = float(max(1e-3, cfg.TAU_GAMMA))
-    gamma_dot_cmd = (float(gamma_cmd) - float(st.gamma)) / tau
+    gamma_dot_cmd = (
+        float(gamma_cmd) - float(st.gamma)
+    ) / tau
 
     cos_mu = max(1e-3, cos(float(mu)))
 
-    # L_req = mV( gamma_dot_cmd + (g/V)cos(gamma) ) / cos(mu)
-    L_req = p.m * V * (gamma_dot_cmd + (p.g / V) * cos(float(st.gamma))) / cos_mu
+    L_req = (
+        p.m
+        * V
+        * (
+            gamma_dot_cmd
+            + (p.g / V) * cos(float(st.gamma))
+        )
+        / cos_mu
+    )
 
     denom = max(1e-6, q * p.S)
     CL_req = float(L_req / denom)
-    CL_req = float(np.clip(CL_req, cfg.CL_MIN, cfg.CL_MAX))
+    CL_req = float(
+        np.clip(
+            CL_req,
+            cfg.CL_MIN,
+            cfg.CL_MAX,
+        )
+    )
 
-    CD_req = float(cfg.CD0 + cfg.K * (CL_req ** 2))
+    CD_req = float(
+        cfg.CD0 + cfg.K * (CL_req ** 2)
+    )
+
     return CL_req, CD_req
