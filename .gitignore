@@ -8,7 +8,6 @@ __pycache__/
 # Virtual environments
 .venv/
 venv/
-.codex_pydeps/
 
 # OS / editor
 .DS_Store
@@ -25,5 +24,4 @@ data/output/
 
 # Logs / temporary files
 *.log
-tmp/
 temp/
