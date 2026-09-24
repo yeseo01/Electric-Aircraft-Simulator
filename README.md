@@ -5,29 +5,45 @@ A Python-based simulator for predicting electric-aircraft flight and battery sta
 The simulator converts mission-profile data into waypoints, follows them through guidance and control logic, propagates aircraft states using 3-DOF flight dynamics, and integrates propulsion and battery models to estimate both aircraft and battery states throughout the mission.
 
 
-## Project Background
+## Key Highlights
+
+- Integrated flight dynamics, guidance/control, propulsion, and battery-state prediction in a single time-stepped simulation.
+- Integrated motor, propeller, and battery surrogate models developed by other research team members into the flight-simulation workflow.
+- Extended the original batch-oriented research simulator with an incremental `FlightSimulator.step()` interface and structured telemetry output.
+- Added regression tests that compare incremental execution against the original batch-simulation workflow.
+
+
+## Research Validation Snapshot
+
+Research validation using private real-flight logs produced the following battery-state prediction errors:
+
+| Variable | RMSE |
+| --- | ---: |
+| Battery Voltage | 3.89 V |
+| State of Charge (SOC) | 1.8 percentage points |
+| Battery Temperature | 0.44 °C |
+
+These results were obtained during the undergraduate research project using real-flight datasets that are not included in this public repository. The public demo and automated tests use synthetic flight data instead.
+
+
+## Project Background & My Role
 
 This project originated from my undergraduate research at the Air Transportation System Design Laboratory (ATSDL), Sejong University.
 
 The research goal was to build an integrated simulation framework that could reproduce an electric-aircraft mission and predict how both aircraft motion and battery states evolve throughout the flight.
 
-During the research project, I designed and implemented the core flight-simulation workflow. After the research period, I continued developing the project as a personal software-engineering exercise, exploring how the existing simulation core could support incremental execution, telemetry, testing, and future application-layer integration.
+I designed and implemented the core flight-simulation workflow. My work included:
 
-
-## My Contribution
-
-During the undergraduate research project, I designed and implemented the overall flight-simulation workflow.
-
-My work included:
-
-- Reading mission-profile data and converting it into a sequence of waypoints.
-- Using each waypoint as a target for guidance and control.
-- Computing the aircraft state at each simulation step using 3-DOF point-mass flight dynamics.
-- Implementing the time-stepped simulation loop that coordinates waypoint tracking, control, and state propagation.
-- Integrating motor, propeller, and battery surrogate models developed by other research team members into the simulator.
-- Extending the original flight-state simulation so that battery states could also be predicted throughout the mission.
+- reading mission-profile data and converting it into a sequence of waypoints
+- using waypoints to generate heading and altitude guidance targets
+- computing aircraft states using 3-DOF point-mass flight dynamics
+- implementing the time-stepped simulation loop that coordinates waypoint tracking, control, and state propagation
+- integrating motor, propeller, and battery surrogate models developed by other research team members
+- extending the flight-state simulation so that battery states could be predicted throughout the mission
 
 The motor, propeller, and battery surrogate models themselves were developed by other members of the research team. My role was to integrate these subsystem models into the flight simulator and coordinate their interaction within the overall simulation loop.
+
+After the research project, I continued developing the simulator as a software-engineering exercise by adding an incremental execution interface, structured telemetry, synthetic public demo data, and regression tests.
 
 
 ## Research Implementation vs. Current Repository
@@ -44,7 +60,7 @@ The primary post-research additions in the current repository are:
 | Research-oriented execution and validation workflow | Regression tests for validating simulator behavior across execution paths |
 
 
-## What the Simulator Does
+## Simulation Workflow
 
 ### Input
 
@@ -137,6 +153,24 @@ Aircraft State ────────────┤
 The `FlightSimulator` class acts as the orchestration layer that coordinates guidance, control, flight dynamics, propulsion, battery-state updates, and telemetry generation.
 
 
+## Incremental Simulation Interface
+
+The original research workflow was batch-oriented. The current repository additionally provides an incremental simulation interface for step-by-step execution:
+
+```python
+from simulator import FlightSimulator
+
+simulator = FlightSimulator.from_config()
+
+while not simulator.finished:
+    frame = simulator.step()
+```
+
+Each call to `step()` advances the simulator by one simulation step and returns structured telemetry containing the current aircraft and battery states.
+
+Regression tests compare incremental execution against the existing batch-simulation workflow to verify consistency between the two execution paths.
+
+
 ## Repository Structure
 
 ```text
@@ -173,60 +207,20 @@ Electric-Aircraft-Simulator/
 ```
 
 
-## Technical Highlights
+## Reproducibility and Data Availability
 
-### Integrated Multidomain Simulation
+The battery-state RMSE values summarized above were obtained during the undergraduate research project using private real-flight logs.
 
-The simulator couples flight dynamics with propulsion and battery models so that aircraft motion and battery behavior evolve together within the same time-stepped simulation.
+Those research datasets are not included in this public repository, so the reported real-flight validation metrics cannot be reproduced directly from the public demo.
 
-### Waypoint-Based Mission Simulation
-
-Mission-profile data are converted into waypoints, which are sequentially used as guidance targets throughout the simulated flight.
-
-### Incremental Simulation API
-
-In addition to the batch-oriented simulation workflow used during the research project, the current repository provides an incremental simulation interface:
-
-```python
-from simulator import FlightSimulator
-
-simulator = FlightSimulator.from_config()
-
-while not simulator.finished:
-    frame = simulator.step()
-```
-
-Each call to `step()` advances the simulator by one simulation step and returns a telemetry frame containing the current aircraft and battery states.
-
-### Modular Simulation Components
-
-The simulator separates guidance, control, flight dynamics, atmosphere, propulsion, and battery-related logic into distinct components with explicit responsibilities within the overall simulation workflow.
-
-### Regression Testing
-
-The repository includes regression tests that compare the incremental simulator against the existing batch-simulation workflow to verify consistency between the two execution paths.
-
-The tests use synthetic flight data generated at runtime and do not require the private real-flight datasets used during the research project.
-
-
-## Validation
-
-During the research project, the integrated simulator was validated against real-flight logs.
-
-Battery-state prediction performance included:
-
-| Variable | RMSE |
-| --- | ---: |
-| Battery Voltage | 3.89 V |
-| State of Charge (SOC) | 1.8 percentage points |
-| Battery Temperature | 0.44 °C |
-
-These results were used to evaluate how closely the integrated simulation reproduced battery behavior observed during the analyzed real flights.
-
-The original real-flight datasets used for this validation are not included in this public repository.
+The public repository instead provides synthetic flight data for demonstrating the end-to-end simulation workflow and for automated regression testing.
 
 
 ## Quick Start
+
+### Tested Environment
+
+- Python 3.13.3
 
 ### 1. Clone the repository
 
@@ -280,8 +274,10 @@ python -m pytest
 
 The current tests verify:
 
-- consistency between the incremental `FlightSimulator` interface and the existing batch simulation
-- correct simulator execution and termination behavior
+- consistency between the incremental `FlightSimulator` interface and the existing batch-simulation workflow
+- correct execution, termination, and finished-state behavior
+- phase-control consistency when logged IAS data are unavailable
+- reproducible simulator state after `reset()`
 
 Synthetic flight data are generated at runtime for testing and are not derived from the private research datasets.
 
@@ -299,17 +295,6 @@ Current limitations include:
 - no certification or safety validation for operational aircraft use
 
 The simulator is intended for research, analysis, and software-development experimentation only.
-
-
-## Post-Research Software Exploration
-
-After the undergraduate research project, I continued developing the simulator as a software-engineering exercise.
-
-The current repository includes an incremental simulation interface, telemetry data structures, synthetic demo data generation, and regression tests that compare incremental execution with the original batch-oriented workflow.
-
-These additions explore how the research simulator can be made easier to execute, test, and integrate into future software applications.
-
-Possible application-layer extensions, such as APIs, telemetry streaming, and web-based monitoring, remain future work.
 
 
 ## Future Work
