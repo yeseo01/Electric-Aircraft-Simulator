@@ -4,7 +4,6 @@ A Python-based simulator for predicting electric-aircraft flight and battery sta
 
 The simulator converts mission-profile data into waypoints, follows them through guidance and control logic, propagates aircraft states using 3-DOF flight dynamics, and integrates propulsion and battery models to estimate both aircraft and battery states throughout the mission.
 
----
 
 ## Project Background
 
@@ -14,7 +13,6 @@ The research goal was to build an integrated simulation framework that could rep
 
 During the research project, I designed and implemented the core flight-simulation workflow. After the research period, I continued developing the project as a personal software-engineering exercise, exploring how the existing simulation core could support incremental execution, telemetry, testing, and future application-layer integration.
 
----
 
 ## My Contribution
 
@@ -31,7 +29,6 @@ My work included:
 
 The motor, propeller, and battery surrogate models themselves were developed by other members of the research team. My role was to integrate these subsystem models into the flight simulator and coordinate their interaction within the overall simulation loop.
 
----
 
 ## Research Implementation vs. Current Repository
 
@@ -46,7 +43,6 @@ The primary post-research additions in the current repository are:
 | Batch-oriented simulation workflow | Incremental `FlightSimulator.step()` interface for step-by-step execution and telemetry generation |
 | Research-oriented execution and validation workflow | Regression tests for validating simulator behavior across execution paths |
 
----
 
 ## What the Simulator Does
 
@@ -90,7 +86,6 @@ The simulator produces time histories of states including:
 - thrust
 - flight phase
 
----
 
 ## System Architecture
 
@@ -141,7 +136,6 @@ Aircraft State ────────────┤
 
 The `FlightSimulator` class acts as the orchestration layer that coordinates guidance, control, flight dynamics, propulsion, battery-state updates, and telemetry generation.
 
----
 
 ## Repository Structure
 
@@ -178,7 +172,6 @@ Electric-Aircraft-Simulator/
 └── README.md
 ```
 
----
 
 ## Technical Highlights
 
@@ -215,7 +208,6 @@ The repository includes regression tests that compare the incremental simulator 
 
 The tests use synthetic flight data generated at runtime and do not require the private real-flight datasets used during the research project.
 
----
 
 ## Validation
 
@@ -233,7 +225,6 @@ These results were used to evaluate how closely the integrated simulation reprod
 
 The original real-flight datasets used for this validation are not included in this public repository.
 
----
 
 ## Quick Start
 
@@ -278,7 +269,6 @@ python -m scripts.run_demo
 
 The demo automatically generates synthetic flight data and does not require the private research flight logs.
 
----
 
 ## Testing
 
@@ -295,7 +285,6 @@ The current tests verify:
 
 Synthetic flight data are generated at runtime for testing and are not derived from the private research datasets.
 
----
 
 ## Limitations
 
@@ -311,7 +300,6 @@ Current limitations include:
 
 The simulator is intended for research, analysis, and software-development experimentation only.
 
----
 
 ## Post-Research Software Exploration
 
@@ -323,7 +311,6 @@ These additions explore how the research simulator can be made easier to execute
 
 Possible application-layer extensions, such as APIs, telemetry streaming, and web-based monitoring, remain future work.
 
----
 
 ## Future Work
 
@@ -337,12 +324,11 @@ Possible extensions include:
 - additional automated tests
 - additional validation using independent flight datasets
 
----
 
 ## Related Research
 
 This simulator was developed as a follow-up research effort to earlier work on electric-aircraft operational and battery-performance analysis.
 
-**Cho, Y., Lee, J., Kim, Y., Jung, C., Kang, S., & Kim, J.**  
-*Understanding the Impact of Operational Variables on Electric Aircraft Battery Performance via Real-Flight Data Analysis.*  
+**Cho, Y., Lee, J., Kim, Y., Jung, C., Kang, S., & Kim, J.**
+*Understanding the Impact of Operational Variables on Electric Aircraft Battery Performance via Real-Flight Data Analysis.*
 Accepted for presentation at ICAS 2026.

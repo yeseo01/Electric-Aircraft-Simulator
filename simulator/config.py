@@ -13,10 +13,13 @@ class SimConfig:
     # ============================================================
     # File paths
     # ============================================================
-    FLIGHT_CSV_PATH: str = "./data/input/flight_logs/flight_log.csv"  # Flight-log CSV path
-    PROP_NPZ_PATH: str = "./data/input/prop_surrogate_cp_eta_simready.npz"  # Propeller surrogate model path
+    # Flight-log CSV path
+    FLIGHT_CSV_PATH: str = "./data/input/flight_logs/flight_log.csv"
+    # Propeller surrogate model path
+    PROP_NPZ_PATH: str = "./data/input/prop_surrogate_cp_eta_simready.npz"
     SAVE_SIM_RESULT_CSV: bool = True  # Whether to save simulation results to CSV
-    SIM_RESULT_CSV_PATH: str = "./data/output/simulation_results/simulation_result.csv"  # Simulation-result CSV path
+    # Simulation-result CSV path
+    SIM_RESULT_CSV_PATH: str = "./data/output/simulation_results/simulation_result.csv"
 
     # ============================================================
     # Simulation time settings
@@ -25,15 +28,20 @@ class SimConfig:
     DOWNSAMPLE_SEC: float = 1.0  # Flight-log-to-waypoint downsampling interval [s]
     V0: float = 1.0  # Initial airspeed [m/s]
     TMAX_SCALE: float = 1.0  # Simulation-duration scale relative to final waypoint time
-    PATH_PROGRESS_SPEED_RECOVERY_ENABLE: bool = True  # Enable speed correction based on 2D path-progress error
-    PATH_PROGRESS_SPEED_RECOVERY_GAIN: float = 0.01  # Path-progress error [m] to target-speed correction [m/s]
-    PATH_PROGRESS_SPEED_RECOVERY_MAX_DELTA_KT: float = 3.0  # Maximum speed correction relative to the base target [kt]
+    # Enable speed correction based on 2D path-progress error
+    PATH_PROGRESS_SPEED_RECOVERY_ENABLE: bool = True
+    # Path-progress error [m] to target-speed correction [m/s]
+    PATH_PROGRESS_SPEED_RECOVERY_GAIN: float = 0.01
+    # Maximum speed correction relative to the base target [kt]
+    PATH_PROGRESS_SPEED_RECOVERY_MAX_DELTA_KT: float = 3.0
 
     # ============================================================
     # Guidance debug logging
     # ============================================================
-    WP_DIST_LOG_T_START_FRAC: float = 0.0  # Start logging after this fraction of total simulation time
-    WP_DIST_LOG_T_END_FRAC: float = 1.0  # Stop logging after this fraction of total simulation time
+    # Start logging after this fraction of total simulation time
+    WP_DIST_LOG_T_START_FRAC: float = 0.0
+    # Stop logging after this fraction of total simulation time
+    WP_DIST_LOG_T_END_FRAC: float = 1.0
 
     # ============================================================
     # Aerodynamics (simple drag polar)
@@ -61,12 +69,18 @@ class SimConfig:
     # Propulsion limits
     # ============================================================
     RPM_SAFE: float = 2500.0  # Maximum RPM limit (HANDBOOK: Max RPM = 2500)
-    RPM_CONT: float = 2300.0  # Continuous RPM reference (HANDBOOK: Max continuous RPM = 2300); used for plotting, not enforced as a control limit
-    RPM_SOLVE_MIN: float = 300.0  # Minimum RPM used by the solver; derived empirically from data
+    # Continuous RPM reference (HANDBOOK: Max continuous RPM = 2300);
+    # used for plotting, not enforced as a control limit
+    RPM_CONT: float = 2300.0
+    # Minimum RPM used by the solver; derived empirically from data
+    RPM_SOLVE_MIN: float = 300.0
     P_MCP_W: float = 49.2e3  # Maximum continuous power [W] (HANDBOOK: MCP = 49.2 kW)
-    P_MTOP_W: float = 57.6e3  # Maximum takeoff power [W] (HANDBOOK: MTOP = 57.6 kW, 90 s limit)
-    MTOP_MAX_DURATION_S: float = 90.0  # Maximum cumulative MTOP duration [s] (HANDBOOK: 90 s)
-    MTOP_ALLOWED_PHASES: Tuple[str, ...] = ("ground_roll", "initial_climb")  # Phases in which MTOP may be permitted
+    # Maximum takeoff power [W] (HANDBOOK: MTOP = 57.6 kW, 90 s limit)
+    P_MTOP_W: float = 57.6e3
+    # Maximum cumulative MTOP duration [s] (HANDBOOK: 90 s)
+    MTOP_MAX_DURATION_S: float = 90.0
+    # Phases in which MTOP may be permitted
+    MTOP_ALLOWED_PHASES: Tuple[str, ...] = ("ground_roll", "initial_climb")
 
     # ============================================================
     # Default speed and power-control settings
@@ -82,47 +96,64 @@ class SimConfig:
     # ============================================================
 
     # Ground roll before climb
-    PHASE_GROUND_BEFORE_CLIMB_VREF_KT: float = 50.0  # Target airspeed (HANDBOOK: 50 KIAS)
-    PHASE_GROUND_BEFORE_CLIMB_P_BASE_W: float = 50.0e3  # Baseline power; simulator tuning value
-    PHASE_GROUND_BEFORE_CLIMB_KP_P: float = 4000.0  # Airspeed-error-to-power gain; simulator tuning value
-    GROUND_ROLL_BEFORE_CLIMB_MU_GROUND: float = 0.5  # Ground-friction coefficient; simulator tuning value
-    GROUND_ROLL_BEFORE_CLIMB_CD_GROUND: float = 0.1  # Ground-roll aerodynamic drag coefficient; simulator tuning value
+    # Target airspeed (HANDBOOK: 50 KIAS)
+    PHASE_GROUND_BEFORE_CLIMB_VREF_KT: float = 50.0
+    # Baseline power; simulator tuning value
+    PHASE_GROUND_BEFORE_CLIMB_P_BASE_W: float = 50.0e3
+    # Airspeed-error-to-power gain; simulator tuning value
+    PHASE_GROUND_BEFORE_CLIMB_KP_P: float = 4000.0
+    # Ground-friction coefficient; simulator tuning value
+    GROUND_ROLL_BEFORE_CLIMB_MU_GROUND: float = 0.5
+    # Ground-roll aerodynamic drag coefficient; simulator tuning value
+    GROUND_ROLL_BEFORE_CLIMB_CD_GROUND: float = 0.1
 
     # Initial climb (below approximately 300 ft)
     PHASE_INITIAL_CLIMB_VREF_KT: float = 60.0  # Target airspeed (HANDBOOK: 57-60 KIAS)
     PHASE_INITIAL_CLIMB_P_BASE_W: float = 50.0e3  # Baseline power (HANDBOOK: 50 kW)
-    PHASE_INITIAL_CLIMB_KP_P: float = 4000.0  # Airspeed-error-to-power gain; simulator tuning value
+    # Airspeed-error-to-power gain; simulator tuning value
+    PHASE_INITIAL_CLIMB_KP_P: float = 4000.0
 
     # Climb (above approximately 300 ft)
     PHASE_CLIMB_VREF_KT: float = 75.0  # Target airspeed (HANDBOOK: 75 KIAS)
     PHASE_CLIMB_P_BASE_W: float = 49.2e3  # Baseline power (HANDBOOK: MCP = 49.2 kW)
-    PHASE_CLIMB_KP_P: float = 4000.0  # Airspeed-error-to-power gain; simulator tuning value
+    # Airspeed-error-to-power gain; simulator tuning value
+    PHASE_CLIMB_KP_P: float = 4000.0
 
     # Cruise
     PHASE_CRUISE_VREF_KT: float = 85.0  # Target airspeed [kt]; simulator tuning value
     PHASE_CRUISE_P_BASE_W: float = 20.0e3  # Baseline power (HANDBOOK: 20-36 kW)
-    PHASE_CRUISE_KP_P: float = 4000.0  # Airspeed-error-to-power gain; simulator tuning value
+    # Airspeed-error-to-power gain; simulator tuning value
+    PHASE_CRUISE_KP_P: float = 4000.0
 
     # Approach
     PHASE_APPROACH_VREF_KT: float = 65.0  # Target airspeed (HANDBOOK: 65 KIAS)
     PHASE_APPROACH_P_BASE_W: float = 0.0e3  # Baseline power (HANDBOOK: cut off)
-    PHASE_APPROACH_KP_P: float = 4000.0  # Airspeed-error-to-power gain; simulator tuning value
+    # Airspeed-error-to-power gain; simulator tuning value
+    PHASE_APPROACH_KP_P: float = 4000.0
 
     # Final approach
     PHASE_FINAL_VREF_KT: float = 60.0  # Target airspeed (HANDBOOK: 60 KIAS)
     PHASE_FINAL_P_BASE_W: float = 0.0e3  # Baseline power (HANDBOOK: cut off)
-    PHASE_FINAL_KP_P: float = 4000.0  # Airspeed-error-to-power gain; simulator tuning value
+    # Airspeed-error-to-power gain; simulator tuning value
+    PHASE_FINAL_KP_P: float = 4000.0
 
     # Ground roll after descent: braking with minimum thrust and increased friction
     PHASE_GROUND_AFTER_DESCENT_VREF_KT: float = 0.0  # Target airspeed
-    PHASE_GROUND_AFTER_DESCENT_P_BASE_W: float = 1.0e3  # Baseline power (HANDBOOK: taxi-level power)
-    PHASE_GROUND_AFTER_DESCENT_KP_P: float = 4000.0  # Airspeed-error-to-power gain; simulator tuning value
-    GROUND_ROLL_AFTER_DESCENT_MU_GROUND: float = 0.5  # Ground-friction coefficient; simulator tuning value
-    GROUND_ROLL_AFTER_DESCENT_CD_GROUND: float = 0.1  # Ground-roll aerodynamic drag coefficient; simulator tuning value
+    # Baseline power (HANDBOOK: taxi-level power)
+    PHASE_GROUND_AFTER_DESCENT_P_BASE_W: float = 1.0e3
+    # Airspeed-error-to-power gain; simulator tuning value
+    PHASE_GROUND_AFTER_DESCENT_KP_P: float = 4000.0
+    # Ground-friction coefficient; simulator tuning value
+    GROUND_ROLL_AFTER_DESCENT_MU_GROUND: float = 0.5
+    # Ground-roll aerodynamic drag coefficient; simulator tuning value
+    GROUND_ROLL_AFTER_DESCENT_CD_GROUND: float = 0.1
 
     # Derived phase-classification thresholds
-    INITIAL_CLIMB_MAX_ALT_GAIN_M: float = 91.0  # Initial-climb altitude-gain threshold (HANDBOOK: safe altitude approximately 300 ft)
-    APPROACH_TO_FINAL_V_KT: float = 60.0  # Approach-to-final transition speed (HANDBOOK: 60 KIAS)
+    # Initial-climb altitude-gain threshold
+    # (HANDBOOK: safe altitude approximately 300 ft)
+    INITIAL_CLIMB_MAX_ALT_GAIN_M: float = 91.0
+    # Approach-to-final transition speed (HANDBOOK: 60 KIAS)
+    APPROACH_TO_FINAL_V_KT: float = 60.0
 
     # ============================================================
     # Heading control
@@ -170,7 +201,8 @@ class SimConfig:
         }
     )
 
-    EFF_MOTOR_INV: float = 0.89  # Motor + inverter efficiency (HANDBOOK: Efficiency = 0.89)
+    # Motor + inverter efficiency (HANDBOOK: Efficiency = 0.89)
+    EFF_MOTOR_INV: float = 0.89
 
     # ============================================================
     # Ambient conditions
@@ -187,9 +219,11 @@ class SimConfig:
     # ============================================================
     # Propulsion stabilization
     # ============================================================
-    V_MIN_FOR_THRUST: float = 8.0  # Minimum airspeed used in thrust calculations to avoid division by zero
+    # Minimum airspeed used in thrust calculations to avoid division by zero
+    V_MIN_FOR_THRUST: float = 8.0
     ETA_CLIP: Tuple[float, float] = (0.05, 0.90)  # Propeller-efficiency clipping range
-    ETA_FALLBACK_CONST: float = 0.60  # Constant efficiency fallback when surrogate data are unavailable
+    # Constant efficiency fallback when surrogate data are unavailable
+    ETA_FALLBACK_CONST: float = 0.60
 
     # ============================================================
     # Derived values

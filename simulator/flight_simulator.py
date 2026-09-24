@@ -187,13 +187,38 @@ class FlightSimulator:
             and len(self.s_wps_xy) == len(self.t_wps)
             and len(self.s_wps_xy) >= 2
         ):
-            s_ref = float(np.interp(t, np.asarray(self.t_wps, dtype=float), self.s_wps_xy))
-            s_now = float(project_xy_progress(state.x, state.y, self.wps, self.s_wps_xy))
+            s_ref = float(
+                np.interp(
+                    t,
+                    np.asarray(self.t_wps, dtype=float),
+                    self.s_wps_xy,
+                )
+            )
+            s_now = float(
+                project_xy_progress(
+                    state.x,
+                    state.y,
+                    self.wps,
+                    self.s_wps_xy,
+                )
+            )
             s_err = s_ref - s_now
             gain = float(getattr(cfg, "PATH_PROGRESS_SPEED_RECOVERY_GAIN", 0.02))
-            max_delta_ms = float(getattr(cfg, "PATH_PROGRESS_SPEED_RECOVERY_MAX_DELTA_KT", 15.0)) * float(cfg.KT2MS)
+            max_delta_ms = float(
+                getattr(
+                    cfg,
+                    "PATH_PROGRESS_SPEED_RECOVERY_MAX_DELTA_KT",
+                    15.0,
+                )
+            ) * float(cfg.KT2MS)
             v_ref_corr = float(v_ref_ms_phase) + gain * s_err
-            v_ref_ms_phase = float(np.clip(v_ref_corr, float(v_ref_ms_phase) - max_delta_ms, float(v_ref_ms_phase) + max_delta_ms))
+            v_ref_ms_phase = float(
+                np.clip(
+                    v_ref_corr,
+                    float(v_ref_ms_phase) - max_delta_ms,
+                    float(v_ref_ms_phase) + max_delta_ms,
+                )
+            )
 
         p_cmd_raw = float(
             self.power_ctrl(
@@ -209,7 +234,10 @@ class FlightSimulator:
         phase_for_cap = control_phase
         mtop_allowed_phases = {str(p).lower().strip() for p in cfg.MTOP_ALLOWED_PHASES}
         mtop_phase_allowed = phase_for_cap in mtop_allowed_phases
-        mtop_time_left_s = max(0.0, float(cfg.MTOP_MAX_DURATION_S) - float(self.mtop_used_s))
+        mtop_time_left_s = max(
+            0.0,
+            float(cfg.MTOP_MAX_DURATION_S) - float(self.mtop_used_s),
+        )
         allow_mtop_now = mtop_phase_allowed and (mtop_time_left_s > 0.0)
         p_cap_now = float(cfg.P_MTOP_W if allow_mtop_now else cfg.P_MCP_W)
 
@@ -229,10 +257,28 @@ class FlightSimulator:
         thrust_now = float(pt_out.thrust_N)
 
         next_state = State.from_vec(
-            rk4_step(t, state.vec(), mu, gamma_cmd, dt, params, thrust_now, cfg, is_ground, flight_drag_scale, is_landing_roll)
+            rk4_step(
+                t,
+                state.vec(),
+                mu,
+                gamma_cmd,
+                dt,
+                params,
+                thrust_now,
+                cfg,
+                is_ground,
+                flight_drag_scale,
+                is_landing_roll,
+            )
         )
         next_state.beta = wrap_to_pi(next_state.beta)
-        next_state.V = float(clamp(next_state.V, float(cfg.V_MIN_MS), float(cfg.V_MAX_MS)))
+        next_state.V = float(
+            clamp(
+                next_state.V,
+                float(cfg.V_MIN_MS),
+                float(cfg.V_MAX_MS),
+            )
+        )
 
         self.powertrain_state = PowertrainState(
             soc=float(pt_out.soc_next),
@@ -303,12 +349,18 @@ class FlightSimulator:
             if self.seen_descent:
                 is_landing_roll = True
                 control_phase = "landing_roll"
-                v_ref_ms_phase = float(cfg.PHASE_GROUND_AFTER_DESCENT_VREF_KT * cfg.KT2MS)
+                v_ref_ms_phase = float(
+                    cfg.PHASE_GROUND_AFTER_DESCENT_VREF_KT
+                    * cfg.KT2MS
+                )
                 kp_phase = float(cfg.PHASE_GROUND_AFTER_DESCENT_KP_P)
                 p_base_phase = float(cfg.PHASE_GROUND_AFTER_DESCENT_P_BASE_W)
             else:
                 control_phase = "ground_roll"
-                v_ref_ms_phase = float(cfg.PHASE_GROUND_BEFORE_CLIMB_VREF_KT * cfg.KT2MS)
+                v_ref_ms_phase = float(
+                    cfg.PHASE_GROUND_BEFORE_CLIMB_VREF_KT
+                    * cfg.KT2MS
+                )
                 kp_phase = float(cfg.PHASE_GROUND_BEFORE_CLIMB_KP_P)
                 p_base_phase = float(cfg.PHASE_GROUND_BEFORE_CLIMB_P_BASE_W)
 
@@ -375,14 +427,35 @@ class FlightSimulator:
 
         phase_for_log = ""
         if self.phase_arr is not None:
-            idx_phase_log = int(np.searchsorted(self.t_log_arr, float(t), side="right") - 1)
+            idx_phase_log = int(
+                np.searchsorted(
+                    self.t_log_arr,
+                    float(t),
+                    side="right",
+                )
+                - 1
+            )
             idx_phase_log = int(clamp(idx_phase_log, 0, len(self.phase_arr) - 1))
             phase_for_log = (str(self.phase_arr[idx_phase_log]) or "").lower().strip()
 
         t_wp_cur = float(self.t_wps[self.wp_idx])
-        t_wp_next = float(self.t_wps[self.wp_idx + 1]) if self.wp_idx < self.wps.shape[0] - 1 else float("nan")
+        t_wp_next = (
+            float(self.t_wps[self.wp_idx + 1])
+            if self.wp_idx < self.wps.shape[0] - 1
+            else float("nan")
+        )
         v_now_kt = float(self.state.V * cfg.MS2KT)
-        v_real_kt = float(np.interp(t, self.t_log_arr, self.ias_log_arr)) if self.use_real_ias else float("nan")
+        v_real_kt = (
+            float(
+                np.interp(
+                    t,
+                    self.t_log_arr,
+                    self.ias_log_arr,
+                )
+            )
+            if self.use_real_ias
+            else float("nan")
+        )
         beta_now_deg = float(np.degrees(self.state.beta))
         beta_cmd_deg = float(np.degrees(g_out.beta_d))
         beta_err_deg = float(np.degrees(wrap_to_pi(g_out.beta_d - self.state.beta)))

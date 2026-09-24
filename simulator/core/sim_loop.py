@@ -266,7 +266,8 @@ def simulate_flight(
     beta0 = 0.0
     gamma0 = 0.0
     if wps.shape[0] >= 2:
-        k_dir = min(wps.shape[0] - 1, 1)  # Use the next waypoint to initialize ground-roll heading.
+        # Use the next waypoint to initialize ground-roll heading.
+        k_dir = min(wps.shape[0] - 1, 1)
         dx = float(wps[k_dir, 0] - wps[0, 0])
         dy = float(wps[k_dir, 1] - wps[0, 1])
         beta0 = float(np.arctan2(dy, dx))
