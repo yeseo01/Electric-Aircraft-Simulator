@@ -2,9 +2,8 @@
 
 Related issue: [#1 — CSV upload and waypoint preview](https://github.com/yeseo01/Electric-Aircraft-Simulator/issues/1).
 
-Status: the CSV validation and preview service are implemented in
-`simulator.preview`. The HTTP endpoint and React screen described below are
-the next implementation steps; this document defines their shared contract.
+Status: the CSV validation service in `simulator.preview` and FastAPI endpoint
+in `backend.main` are implemented. The React upload screen is the next step.
 
 ## User flow
 
@@ -39,9 +38,11 @@ and phase columns can be present and are ignored at this stage. A successful
 preview does not imply that the file contains all inputs needed for simulation
 or real-flight comparison. Existing `load_flight_csv()` behavior is unchanged.
 
-The maximum file size is 10 MiB (10,485,760 bytes). Process uploaded content
-in memory. Do not retain uploaded files, echo cell values in errors, or log the
-CSV body or coordinate response. Public examples and tests use synthetic data.
+The maximum file size is 10 MiB (10,485,760 bytes). The preview service processes
+CSV bytes in memory. FastAPI/Starlette may spool multipart uploads to temporary
+disk files; these are closed and released after successful or failed requests.
+The application does not retain uploads or log their contents. Errors do not
+echo cell values. Public examples and tests use synthetic data.
 
 ## Preview semantics
 
@@ -64,7 +65,7 @@ ellipsoidal altitude, GPS altitude, or terrain elevation; the response must not
 label it as one of those quantities. The altitude graph should be labeled
 "Relative pressure altitude (m)".
 
-## Planned HTTP endpoint
+## HTTP endpoint
 
 `POST /api/flight-previews`, request body `multipart/form-data`:
 
@@ -79,7 +80,14 @@ The HTTP layer must enforce the size limit while reading the upload, then invoke
 the service. It maps validation errors to the envelope below, including request
 parsing errors, rather than returning framework-dependent error shapes.
 
-Development request, once the endpoint is implemented:
+The request-body middleware counts received bytes before multipart parsing and
+caps the entire body at 10 MiB + 64 KiB. The extra budget covers multipart headers
+and fields; files still have a separate 10 MiB limit. This works even without
+a Content-Length header or with an understated header. Excessive form overhead
+is also rejected with HTTP 413. Preview calculation runs in the server's thread
+pool rather than blocking its async event loop.
+
+Development request (see README for server startup and synthetic input creation):
 
 ```bash
 curl -X POST http://127.0.0.1:8000/api/flight-previews \
@@ -157,9 +165,19 @@ should use them to choose messages instead of matching the English text.
 | `invalid_downsample_sec` | Invalid downsampling interval |
 | `invalid_coordinates` | Coordinate conversion produces non-finite output |
 
-The HTTP implementation will also add request-level codes for missing fields
-or invalid multipart bodies using this envelope. Internal errors should receive
-a generic response without exposing input data or local filesystem paths.
+| HTTP issue code | Status | Meaning |
+| --- | --- | --- |
+| `missing_file` | 422 | Required file field is absent |
+| `invalid_file` | 422 | File field contains text instead of an upload |
+| `invalid_downsample_sec` | 422 | Form value is nonnumeric, non-finite, or not positive |
+| `invalid_multipart` | 422 | Multipart request cannot be parsed |
+| `invalid_request` | 422 | Other request validation failure |
+| `request_too_large` | 413 | Whole body exceeds the multipart budget |
+
+Request errors use the same envelope and never echo Pydantic's raw input values.
+Unexpected internal errors return HTTP 500 with `error.code` set to
+`internal_error`, a generic message, and an empty `issues` array. Preview errors
+include `Cache-Control: no-store`.
 
 ## Python service available now
 
@@ -177,13 +195,14 @@ except PreviewValidationError as error:
     response = error.to_dict()
 ```
 
-Run `python -m scripts.run_demo` to generate that synthetic input first.
+Generate the synthetic input as shown in the README, or use
+`python -m scripts.run_demo` to generate it and run the existing demo.
 For future uploads, pass the file bytes to the same service.
 
 ## Implementation sequence
 
-1. CSV/preview contract and service with synthetic unit tests (this change).
-2. FastAPI multipart endpoint and API tests for success, validation, and limits.
+1. CSV/preview contract and service with synthetic unit tests (implemented).
+2. FastAPI multipart endpoint and API tests for success, validation, and limits (implemented).
 3. React drag/drop, file selection, ECharts route/altitude, and error/retry states.
 4. Browser flow checks and run instructions; review against issue #1.
 
