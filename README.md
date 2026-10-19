@@ -286,15 +286,48 @@ Synthetic flight data are generated at runtime for testing and are not derived f
 
 Development of the web workflow is tracked in [issue #1](https://github.com/yeseo01/Electric-Aircraft-Simulator/issues/1).
 
-The first increment provides a framework-independent CSV validation and waypoint-preview service in `simulator.preview`. It accepts UTF-8 CSV bytes with `time(ms)`, `LAT`, `LNG`, and `PRESSURE_ALT`, reuses the existing waypoint generation, and returns structured metadata and coordinates. Additional comparison channels are optional for preview. Upload contents are processed in memory.
+The preview service in `simulator.preview` accepts UTF-8 CSV bytes with `time(ms)`, `LAT`, `LNG`, and `PRESSURE_ALT`, reuses the existing waypoint generation, and returns structured metadata and coordinates. Additional comparison channels are optional for preview.
 
-The [flight preview contract](docs/flight-preview-contract.md) defines input units, validation, coordinate/time conventions, and the planned API request/response format. The FastAPI endpoint and React upload screen are subsequent increments.
+FastAPI now exposes this service through `POST /api/flight-previews`. The [flight preview contract](docs/flight-preview-contract.md) defines input units, validation, coordinate/time conventions, and API request/response formats. The React upload screen is the next increment.
 
-Run the preview service tests with:
+### Run the API locally
+
+From the repository root, activate `.venv` as described above, then install the updated dependencies and start the server:
 
 ```bash
-python -m pytest tests/test_preview.py
+python -m pip install -r requirements.txt
+python -m uvicorn backend.main:app --reload --host 127.0.0.1 --port 8000
 ```
+
+Open [interactive API docs](http://127.0.0.1:8000/docs), expand `POST /api/flight-previews`, select **Try it out**, choose a CSV, set `downsample_sec` if needed, and select **Execute**. Use `Ctrl+C` in the server terminal to stop it.
+
+### Try a synthetic upload
+
+In a second terminal with the same environment activated, create a public synthetic CSV without opening Matplotlib:
+
+```bash
+python -c "from simulator.demo_data import create_demo_flight_csv; create_demo_flight_csv('data/input/demo/synthetic_flight.csv')"
+```
+
+Upload it from `/docs`, or use:
+
+```bash
+curl -X POST http://127.0.0.1:8000/api/flight-previews \
+  -F 'file=@data/input/demo/synthetic_flight.csv' \
+  -F 'downsample_sec=1.0'
+```
+
+A valid CSV returns HTTP **200** with waypoint coordinates and metadata. Invalid CSV/form input returns **422** with an `error.issues` array; oversized files or requests return **413**. The file limit is 10 MiB; the entire multipart request has an additional 64 KiB overhead budget.
+
+Uploads are not retained by the application. The HTTP framework may use temporary files during multipart parsing and releases them after each request. The API previews the mission; it does not run the flight simulation yet.
+
+### Test the preview service and API
+
+```bash
+python -m pytest tests/test_preview.py backend/tests
+```
+
+API tests use [Starlette's TestClient](https://starlette.dev/testclient/) with `httpx2` and synthetic uploads. Run `python -m pytest` to include the existing simulator regression tests as well.
 
 
 ## Limitations
