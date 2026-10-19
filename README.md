@@ -282,6 +282,21 @@ The current tests verify:
 Synthetic flight data are generated at runtime for testing and are not derived from the private research datasets.
 
 
+## CSV Upload and Waypoint Preview — In Progress
+
+Development of the web workflow is tracked in [issue #1](https://github.com/yeseo01/Electric-Aircraft-Simulator/issues/1).
+
+The first increment provides a framework-independent CSV validation and waypoint-preview service in `simulator.preview`. It accepts UTF-8 CSV bytes with `time(ms)`, `LAT`, `LNG`, and `PRESSURE_ALT`, reuses the existing waypoint generation, and returns structured metadata and coordinates. Additional comparison channels are optional for preview. Upload contents are processed in memory.
+
+The [flight preview contract](docs/flight-preview-contract.md) defines input units, validation, coordinate/time conventions, and the planned API request/response format. The FastAPI endpoint and React upload screen are subsequent increments.
+
+Run the preview service tests with:
+
+```bash
+python -m pytest tests/test_preview.py
+```
+
+
 ## Limitations
 
 This project is a research and software-development prototype rather than a certified flight-performance or aircraft-control system.

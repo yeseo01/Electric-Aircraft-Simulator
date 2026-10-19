@@ -18,6 +18,8 @@ Thumbs.db
 # Private research data
 *.csv
 data/input/flight_logs/
+data/uploads/
+data/runtime/
 
 # Generated outputs
 data/output/
