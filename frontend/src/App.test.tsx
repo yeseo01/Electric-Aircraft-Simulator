@@ -4,6 +4,11 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import App from './App'
 import { previewFixture } from './test/previewFixture'
 
+// ECharts lifecycle/coordinates are tested separately; these tests cover App state.
+vi.mock('./components/charts/FlightChart', () => ({
+  default: ({ kind }: { kind: string }) => <div role="img" aria-label={`${kind} chart`} />,
+}))
+
 afterEach(() => vi.unstubAllGlobals())
 
 function dropFile(name = 'flight.csv') {
@@ -39,6 +44,8 @@ describe('preview submission flow', () => {
     expect(within(summary).getByText('CSV samples').nextElementSibling).toHaveTextContent('3')
     expect(within(summary).getByText('Waypoints').nextElementSibling).toHaveTextContent('2')
     expect(within(summary).getByText('Flight duration').nextElementSibling).toHaveTextContent('2 s')
+    expect(screen.getByRole('img', { name: 'route chart' })).toBeInTheDocument()
+    expect(screen.getByRole('img', { name: 'altitude chart' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Generate preview' })).toBeEnabled()
   })
 
@@ -68,6 +75,23 @@ describe('preview submission flow', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent('Check that the frontend and local API are running')
   })
 
+  it('removes previous charts when a repeated preview request fails', async () => {
+    vi.stubGlobal('fetch', vi.fn()
+      .mockResolvedValueOnce(Response.json(previewFixture()))
+      .mockRejectedValueOnce(new TypeError('Failed to fetch')))
+    const user = userEvent.setup()
+    render(<App />)
+    dropFile()
+    await user.click(screen.getByRole('button', { name: 'Generate preview' }))
+    await screen.findByRole('region', { name: 'Preview ready' })
+    expect(screen.getByRole('img', { name: 'route chart' })).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Generate preview' }))
+    await screen.findByRole('alert')
+    expect(screen.queryByRole('img', { name: 'route chart' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('img', { name: 'altitude chart' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('region', { name: 'Preview ready' })).not.toBeInTheDocument()
+  })
+
   it.each(['replace', 'remove', 'invalid replacement'])('clears a completed preview on %s', async (action) => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(Response.json(previewFixture())))
     const user = userEvent.setup()
@@ -78,6 +102,8 @@ describe('preview submission flow', () => {
     if (action === 'remove') await user.click(screen.getByRole('button', { name: 'Remove file' }))
     else dropFile(action === 'replace' ? 'second.csv' : 'invalid.txt')
     expect(screen.queryByRole('region', { name: 'Preview ready' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('img', { name: 'route chart' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('img', { name: 'altitude chart' })).not.toBeInTheDocument()
     if (action !== 'replace') expect(screen.getByRole('button', { name: 'Generate preview' })).toBeDisabled()
   })
 

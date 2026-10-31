@@ -288,7 +288,7 @@ Development of the web workflow is tracked in [issue #1](https://github.com/yese
 
 The preview service in `simulator.preview` accepts UTF-8 CSV bytes with `time(ms)`, `LAT`, `LNG`, and `PRESSURE_ALT`, reuses the existing waypoint generation, and returns structured metadata and coordinates. Additional comparison channels are optional for preview.
 
-FastAPI now exposes this service through `POST /api/flight-previews`. The [flight preview contract](docs/flight-preview-contract.md) defines input units, validation, coordinate/time conventions, and API request/response formats. The React + TypeScript + Vite app in `frontend/` supports CSV drag-and-drop, file selection, and preview submission. It displays loading/errors and the returned sample count, waypoint count, and flight duration. Route and altitude charts are the next increment.
+FastAPI now exposes this service through `POST /api/flight-previews`. The [flight preview contract](docs/flight-preview-contract.md) defines input units, validation, coordinate/time conventions, and API request/response formats. The React + TypeScript + Vite app in `frontend/` supports CSV drag-and-drop, file selection, and preview submission. Its dark dashboard displays loading/errors, sample count, waypoint count, and flight duration alongside interactive ECharts route and relative pressure altitude plots. The route preserves equal east/north scale and marks start/end; the altitude plot includes time zoom. Simulation execution and live comparison are future increments.
 
 ### Run the frontend
 

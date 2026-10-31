@@ -4,8 +4,9 @@ Related issue: [#1 — CSV upload and waypoint preview](https://github.com/yeseo
 
 Status: the CSV validation service in `simulator.preview` and FastAPI endpoint
 in `backend.main` are implemented. The React screen supports file selection,
-explicit upload, loading/error/retry states, and a preview summary. Route and
-altitude charts are the next step.
+explicit upload, loading/error/retry states, a preview summary, and interactive
+ECharts route/altitude plots. The route preserves equal east/north meter scale;
+the altitude plot supports time zoom. This remains a CSV profile preview.
 
 ## User flow
 
@@ -205,7 +206,7 @@ For future uploads, pass the file bytes to the same service.
 
 1. CSV/preview contract and service with synthetic unit tests (implemented).
 2. FastAPI multipart endpoint and API tests for success, validation, and limits (implemented).
-3. React drag/drop, file selection, ECharts route/altitude, and error/retry states.
+3. React drag/drop, file selection, ECharts route/altitude, and error/retry states (implemented).
 4. Browser flow checks and run instructions; review against issue #1.
 
 These steps make up issue #1 together. It stays open until the complete browser
