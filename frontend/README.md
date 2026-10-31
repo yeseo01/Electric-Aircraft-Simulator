@@ -7,7 +7,7 @@ the selected CSV to FastAPI and displays the sample count, waypoint count, and
 flight duration. A dark dashboard also plots the east/north route and relative
 pressure altitude over time, with start/end markers, tooltips, and a time zoom
 slider. A central Plotly 3D route panel combines position and relative pressure
-altitude with orbit, zoom, endpoint markers, and a reset-view button.
+altitude with turntable rotation (Z stays upright), zoom, endpoint markers, and a reset-view button.
 This implements the preview workflow in
 [issue #1](https://github.com/yeseo01/Electric-Aircraft-Simulator/issues/1).
 

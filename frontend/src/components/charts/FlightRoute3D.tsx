@@ -87,7 +87,7 @@ export default function FlightRoute3D({ preview }: { preview: FlightPreview }) {
         </label>
         <button className="reset-view" type="button" disabled={status !== 'ready'} onClick={() => resetViewRef.current?.()}>Reset view</button>
       </div>
-      <p className="spatial-scale-note">Height displayed at {verticalScale}×. Altitude values unchanged. Drag to rotate · Scroll to zoom.</p>
+      <p className="spatial-scale-note">Height displayed at {verticalScale}×. Altitude values unchanged. Drag to rotate · Z stays upright · Scroll to zoom.</p>
     </>
   )
 }

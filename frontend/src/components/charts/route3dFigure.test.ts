@@ -22,7 +22,8 @@ describe('3D route figure', () => {
       { name: 'End', x: [-50], y: [300], z: [80], customdata: [10] },
     ])
     expect(figure.layout.scene).toMatchObject({
-      dragmode: 'orbit',
+      dragmode: 'turntable',
+      camera: { up: { x: 0, y: 0, z: 1 } },
       xaxis: { title: { text: 'East (m)' } },
       yaxis: { title: { text: 'North (m)' } },
       zaxis: { title: { text: 'Δ pressure alt (m)' } },

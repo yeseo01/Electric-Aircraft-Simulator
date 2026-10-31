@@ -66,7 +66,8 @@ export function route3dFigure(preview: FlightPreview, verticalScale = DEFAULT_VE
       font: { family: 'Avenir Next, Segoe UI, sans-serif', color: '#c6dbe6' },
       hoverlabel: { bgcolor: '#102a3d', bordercolor: '#386279', font: { color: '#e6f4fa', size: 11 } },
       scene: {
-        bgcolor: 'rgba(0,0,0,0)', dragmode: 'orbit', camera: initialCamera(),
+        // Turntable rotation keeps Z upright so the XY ground plane cannot roll.
+        bgcolor: 'rgba(0,0,0,0)', dragmode: 'turntable', camera: initialCamera(),
         // Stretch only the rendered vertical axis. Data, ticks and hover values
         // remain actual meters; the UI always shows the display multiplier.
         aspectmode: 'manual',
