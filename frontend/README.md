@@ -54,8 +54,8 @@ first CSV sample. Hover or click the plots to inspect coordinates. Drag the
 altitude time slider or zoom inside the altitude plot to inspect a time range.
 The 3D panel uses east/north/relative pressure altitude in meters;
 drag to rotate, scroll to zoom, and use **Reset view** to restore the default
-camera. **Vertical scale** defaults to **10×** to make climbs/descents visible,
-with 1× (equal scale), 5×, 10×, 20×, and 50× options. Only the rendered vertical
+camera, positioned closer for a larger initial view. **Vertical scale** defaults to
+**5×**, with only 1× (equal scale) and 5× options. Only the rendered vertical
 aspect ratio changes; coordinates, axis values, and hover values remain actual
 meters. The multiplier is always displayed. Changing it redraws the view at the
 default camera. The three panels appear in the order

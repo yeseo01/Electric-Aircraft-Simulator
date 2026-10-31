@@ -15,7 +15,7 @@ function flight() {
 
 describe('3D route figure', () => {
   it('maps east/north/relative pressure altitude and time without sorting the flight', () => {
-    const figure = route3dFigure(flight(), 10)
+    const figure = route3dFigure(flight())
     expect(figure.data).toMatchObject([
       { type: 'scatter3d', x: [0, 200, -50], y: [0, 100, 300], z: [0, -20, 80], customdata: [0, 3, 10] },
       { name: 'Start', x: [0], y: [0], z: [0], customdata: [0] },
@@ -41,14 +41,14 @@ describe('3D route figure', () => {
     expect(Math.min(aspect.x!, aspect.y!, aspect.z!)).toBeGreaterThan(0)
   })
 
-  it.each([5, 10, 20, 50])('expands only the visual vertical axis by %s without changing data, ticks, or hover values', scale => {
+  it('expands only the visual vertical axis by 5 without changing data, ticks, or hover values', () => {
     const normal = route3dFigure(flight(), 1)
-    const enhanced = route3dFigure(flight(), scale)
+    const enhanced = route3dFigure(flight())
     expect(enhanced.data).toEqual(normal.data)
     expect(enhanced.layout.scene!.zaxis).toEqual(normal.layout.scene!.zaxis)
     const baseline = normal.layout.scene!.aspectratio!
     const display = enhanced.layout.scene!.aspectratio!
-    expect(display.z! / display.x!).toBeCloseTo((baseline.z! / baseline.x!) * scale)
+    expect(display.z! / display.x!).toBeCloseTo((baseline.z! / baseline.x!) * 5)
     expect(display.y! / display.x!).toBeCloseTo(baseline.y! / baseline.x!)
     expect(Math.max(display.x!, display.y!, display.z!)).toBe(1)
   })
@@ -56,6 +56,6 @@ describe('3D route figure', () => {
   it('returns a fresh reset camera so renderer mutations do not change the default', () => {
     const camera = initialCamera()
     camera.eye!.x = 100
-    expect(initialCamera().eye!.x).toBe(1.2)
+    expect(initialCamera().eye!.x).toBe(1.02)
   })
 })

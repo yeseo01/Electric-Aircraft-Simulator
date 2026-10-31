@@ -10,8 +10,9 @@ the altitude plot supports time zoom. This remains a CSV profile preview.
 
 The central 3D panel combines `east_m`, `north_m`, and `relative_altitude_m` in
 meters. Its z coordinate is the first-sample pressure altitude
-offset, not the geometric ENU Up coordinate. Orbit/zoom/reset affect only the
-view. Vertical display scale defaults to 10×, with 1×/5×/10×/20×/50× choices.
+offset, not the geometric ENU Up coordinate. Turntable rotation/zoom/reset affect
+only the view. Vertical display scale defaults to 5×, with only 1×/5× choices.
+The default and reset camera are closer to make the initial plot larger.
 Only the rendered aspect ratio is exaggerated and the multiplier is labeled;
 data, axis values, and hover values remain unchanged. At 1×, meter scale is equal.
 

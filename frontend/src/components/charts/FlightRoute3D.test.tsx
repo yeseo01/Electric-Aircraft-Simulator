@@ -41,7 +41,7 @@ describe('3D chart lifecycle', () => {
     expect(runtime.resize).toHaveBeenCalledOnce()
     fireEvent.click(screen.getByRole('button', { name: 'Reset view' }))
     expect(runtime.relayout).toHaveBeenCalledWith(expect.any(HTMLElement), {
-      'scene.camera': expect.objectContaining({ eye: { x: 1.2, y: -1.4, z: 1 } }),
+      'scene.camera': expect.objectContaining({ eye: { x: 1.02, y: -1.19, z: 0.85 } }),
     })
     view.unmount()
     expect(runtime.purge).toHaveBeenCalledOnce()
@@ -56,11 +56,12 @@ describe('3D chart lifecycle', () => {
     expect(screen.getByRole('button', { name: 'Reset view' })).toBeDisabled()
   })
 
-  it('defaults to 10× and lets the user return to equal scale without changing altitude data', async () => {
+  it('offers only 1× and 5×, defaults to 5×, and preserves altitude data when switching', async () => {
     render(<FlightRoute3D preview={previewFixture()} />)
     await expectReady()
-    expect(screen.getByRole('combobox', { name: 'Vertical display scale' })).toHaveValue('10')
-    expect(screen.getByText(/Height displayed at 10×/)).toBeInTheDocument()
+    expect(screen.getByRole('combobox', { name: 'Vertical display scale' })).toHaveValue('5')
+    expect(screen.getAllByRole('option').map(option => (option as HTMLOptionElement).value)).toEqual(['1', '5'])
+    expect(screen.getByText(/Height displayed at 5×/)).toBeInTheDocument()
     const initialData = runtime.newPlot.mock.calls[0][1]
     fireEvent.change(screen.getByRole('combobox', { name: 'Vertical display scale' }), { target: { value: '1' } })
     await expectReady()

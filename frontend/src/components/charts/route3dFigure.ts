@@ -1,11 +1,12 @@
 import type { Camera, Config, Data, Layout, SceneAxis } from 'plotly.js'
 import type { FlightPreview } from '../../api/flightPreviews'
 
-export const DEFAULT_VERTICAL_SCALE = 10
-export const VERTICAL_SCALES = [1, 5, 10, 20, 50] as const
+export const DEFAULT_VERTICAL_SCALE = 5
+export const VERTICAL_SCALES = [1, 5] as const
 
 export function initialCamera(): Partial<Camera> {
-  return { eye: { x: 1.2, y: -1.4, z: 1 }, up: { x: 0, y: 0, z: 1 } }
+  // Move 15% closer along the same viewing direction for a larger initial view.
+  return { eye: { x: 1.02, y: -1.19, z: 0.85 }, up: { x: 0, y: 0, z: 1 } }
 }
 
 function paddedRange(values: number[]): [number, number] {
