@@ -40,3 +40,82 @@ h1 {
   color: #58677d;
   line-height: 1.7;
 }
+
+.generate-preview {
+  width: 100%;
+  min-height: 2.75rem;
+  margin-top: 1.25rem;
+  padding: 0.75rem 1rem;
+  border: 0;
+  border-radius: 0.375rem;
+  color: #fff;
+  background: #245bc6;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.generate-preview:hover:enabled {
+  background: #1949a6;
+}
+
+.generate-preview:disabled {
+  color: #58677d;
+  background: #e4e9f2;
+  cursor: not-allowed;
+}
+
+.generate-preview:focus-visible {
+  outline: 3px solid #245bc6;
+  outline-offset: 3px;
+}
+
+.preview-loading {
+  margin: 1.25rem 0 0;
+  color: #245bc6;
+  line-height: 1.6;
+}
+
+.preview-summary, .preview-error {
+  margin-top: 1.5rem;
+  padding: 1.25rem;
+  border: 1px solid #dce3ec;
+  border-radius: 0.5rem;
+}
+
+.preview-summary h2, .preview-error h2 {
+  margin: 0 0 1rem;
+  font-size: 1.125rem;
+}
+
+.preview-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(7rem, 1fr));
+  gap: 1rem;
+  margin: 0 0 1rem;
+}
+
+.preview-metrics dt {
+  margin-bottom: 0.25rem;
+  color: #58677d;
+  font-size: 0.875rem;
+}
+
+.preview-metrics dd {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 650;
+  overflow-wrap: anywhere;
+}
+
+.preview-error {
+  border-color: #edb7b7;
+  color: #912020;
+  background: #fff7f7;
+  overflow-wrap: anywhere;
+}
+
+.preview-error p {
+  margin: 0.5rem 0 0;
+  line-height: 1.6;
+}

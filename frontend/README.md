@@ -2,8 +2,10 @@
 
 React + TypeScript + Vite application generated from the official `react-ts`
 template. The page now accepts a CSV through drag-and-drop or the native file
-chooser and displays the selected filename and size. API upload and charts are
-subsequent steps in [issue #1](https://github.com/yeseo01/Electric-Aircraft-Simulator/issues/1).
+chooser and displays the selected filename and size. **Generate preview** sends
+the selected CSV to FastAPI and displays the sample count, waypoint count, and
+flight duration. Route and altitude charts are the next step in
+[issue #1](https://github.com/yeseo01/Electric-Aircraft-Simulator/issues/1).
 
 ## Prerequisites
 
@@ -13,6 +15,7 @@ The initial scaffold was verified with Node.js 26.8.2 and npm 11.19.1.
 
 The frontend is independent of the Python virtual environment and does not
 require the API server for file selection.
+Generating a preview requires both servers below.
 
 ## Install and run
 
@@ -28,6 +31,26 @@ Open the printed Local URL, normally `http://127.0.0.1:5173`.
 Change `src/App.tsx` and save to see Vite update the page.
 Stop the server with `Ctrl+C`.
 
+In a second terminal at the repository root, start the API:
+
+```bash
+.venv/bin/python -m uvicorn backend.main:app --reload --host 127.0.0.1 --port 8000
+```
+
+See the root README for Python dependency installation if the virtual environment
+has not been prepared. Keep both terminals running during preview generation.
+Use **Choose CSV** or drop a file, then click **Generate preview**. Merely choosing
+a file does not send it. The button shows a loading state until the API responds.
+Errors include the CSV column and physical line number where available; fix the
+file or restart the API and click the button again to retry.
+
+Vite forwards `/api/*` to `http://127.0.0.1:8000` through `server.proxy` in
+`vite.config.ts`. The browser uses a relative URL, so no cross-origin request
+configuration is needed for this local workflow. Restart Vite when changing its
+proxy configuration. For deployment, configure the host/reverse proxy to route
+`/api` to the Python backend; these dev-server settings are not bundled into the
+static production assets.
+
 `npm ci` installs the versions recorded in `package-lock.json`. Commit that
 lockfile when dependencies change. `node_modules/` and generated `dist/` files
 are ignored by Git.
@@ -37,13 +60,18 @@ are ignored by Git.
 - Choose or drop exactly one nonempty `.csv` file, up to 10 MiB.
 - Change the selected file or remove it. Cancelling the chooser keeps the selection.
 - An invalid replacement clears the old selection and shows an error.
-- The file remains a browser `File` object in React state. This step makes no API
-  request, reads no CSV contents, and saves no file to browser or server storage.
-  Refreshing the page clears the selection.
+- Selecting a file keeps a browser `File` object in React state. Only **Generate
+  preview** transmits it to the local backend, using multipart form data and the
+  default 1-second waypoint interval. The application does not retain uploads;
+  the framework releases temporary upload files when the request completes.
+- Changing/removing the file clears previous results/errors and aborts any
+  outstanding browser request. Late responses cannot overwrite the new selection.
+  Aborting the browser request does not guarantee that server computation stops.
+- No file or result is saved to persistent browser storage. Refreshing clears both.
 
 The extension, size, and count checks provide immediate feedback; they do not
-verify that the contents are a valid flight log. The existing backend will
-validate CSV rows and columns when the API is connected in the next increment.
+verify that the contents are a valid flight log. The backend validates CSV rows
+and columns after submission; the client checks the returned JSON contract.
 Private flight logs remain outside the repository; tests create synthetic files
 in memory.
 
@@ -55,7 +83,8 @@ npm run build
 ```
 
 Vitest and React Testing Library exercise selection, replacement, removal,
-drag-and-drop, validation boundaries, and keyboard access. Use `npm run test:watch`
+drag-and-drop, validation boundaries, keyboard access, multipart requests, errors,
+retry, loading states, cancellation, and late-response handling. Use `npm run test:watch`
 to rerun tests as you edit.
 
 The build runs TypeScript checking and creates production assets in `dist/`.
@@ -69,7 +98,10 @@ for future lint checks.
 | --- | --- |
 | `index.html` | HTML entry point; contains the root element and loads `main.tsx` |
 | `src/main.tsx` | Mounts React's `App` component inside the root element |
-| `src/App.tsx` | Page component; owns the selected `File` in React state |
+| `src/App.tsx` | Selected file, request lifecycle, loading/error/summary UI |
+| `src/api/flightPreviews.ts` | API types, FormData/fetch, response checks, error messages |
+| `src/api/flightPreviews.test.ts` | Multipart and response contract tests |
+| `src/App.test.tsx` | Submit, retry, loading, and stale-response interaction tests |
 | `src/components/CsvFilePicker.tsx` | Native input, drag events, metadata checks, and selection feedback |
 | `src/components/CsvFilePicker.css` | Drop area, selected file, and error styles |
 | `src/components/CsvFilePicker.test.tsx` | User interaction tests with synthetic files |
@@ -84,3 +116,6 @@ for future lint checks.
 See the [Vite guide](https://vite.dev/guide/) and
 [React setup guide](https://react.dev/learn/build-a-react-app-from-scratch)
 for the original setup workflow.
+
+For a step-by-step Korean explanation of this increment, see
+[React → FastAPI learning notes](../docs/learning/react-fastapi-preview.md).

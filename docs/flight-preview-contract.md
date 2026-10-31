@@ -3,7 +3,9 @@
 Related issue: [#1 — CSV upload and waypoint preview](https://github.com/yeseo01/Electric-Aircraft-Simulator/issues/1).
 
 Status: the CSV validation service in `simulator.preview` and FastAPI endpoint
-in `backend.main` are implemented. The React upload screen is the next step.
+in `backend.main` are implemented. The React screen supports file selection,
+explicit upload, loading/error/retry states, and a preview summary. Route and
+altitude charts are the next step.
 
 ## User flow
 
