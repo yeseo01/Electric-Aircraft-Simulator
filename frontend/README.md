@@ -58,9 +58,11 @@ camera, positioned closer for a larger initial view. **Vertical scale** defaults
 **5×**, with only 1× (equal scale) and 5× options. Only the rendered vertical
 aspect ratio changes; coordinates, axis values, and hover values remain actual
 meters. The multiplier is always displayed. Changing it redraws the view at the
-default camera. The three panels appear in the order
-2D route → 3D route → CSV input on wide screens. At 1100px and below, input moves
-first, followed by 2D, 3D, altitude, and summary.
+default camera. The compact CSV toolbar sits above all charts. On wide screens,
+2D route and altitude occupy equal-height rows on the left, while 3D spans both
+rows on the right with 2.15 times the left column's width. The summary sits below.
+At 1000px and below, charts stack in the order 2D route → altitude → 3D.
+CSV format and privacy information can be expanded in the toolbar.
 
 The 3D renderer requires WebGL and is loaded only after successful preview
 generation. Its dedicated gl3d bundle is about 539 kB compressed in the verified

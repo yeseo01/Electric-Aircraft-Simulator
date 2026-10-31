@@ -78,6 +78,44 @@ function App() {
           <p className="workflow-label"><span>01</span> Import & inspect</p>
         </div>
 
+        <section className="panel mission-panel" aria-labelledby="mission-title">
+          <div className="mission-toolbar">
+            <div className="panel-heading">
+              <div><p className="panel-kicker">Source data</p><h2 id="mission-title">Mission input</h2></div>
+            </div>
+            <CsvFilePicker file={file} onFileChange={handleFileChange} />
+            <button
+              className="generate-preview"
+              type="button"
+              disabled={!file || previewState.status === 'loading'}
+              onClick={handleGeneratePreview}
+            >
+              {previewState.status === 'loading' ? 'Generating preview…' : 'Generate preview'}
+              <span aria-hidden="true">↗</span>
+            </button>
+          </div>
+          <div className="mission-feedback">
+            <div aria-live="polite" aria-atomic="true">
+              {previewState.status === 'loading' && (
+                <p className="preview-loading" role="status">Checking the flight CSV and generating waypoints…</p>
+              )}
+              {preview && <p className="preview-confirmation">Preview generated. Explore the route and altitude below.</p>}
+            </div>
+            <details className="input-help">
+              <summary>CSV format &amp; privacy</summary>
+              <p className="privacy-note">Your CSV is sent to the local API only when you generate a preview. Uploads are not retained.</p>
+              <p className="input-requirements">Required channels: time(ms) · LAT · LNG · PRESSURE_ALT</p>
+            </details>
+          </div>
+          {previewState.status === 'error' && (
+            <div className="preview-error" role="alert">
+              <h3>Preview could not be generated</h3>
+              <p>{previewState.message}</p>
+              <p>Check the file or local API, then choose Generate preview to retry.</p>
+            </div>
+          )}
+        </section>
+
         <div className="workspace-grid">
           <section className="panel route-panel" aria-labelledby="route-title">
             <div className="panel-heading">
@@ -99,56 +137,6 @@ function App() {
             </div>
           </section>
 
-          <section className="panel spatial-panel" aria-labelledby="spatial-title">
-            <div className="panel-heading">
-              <div><p className="panel-kicker">Spatial profile</p><h2 id="spatial-title">3D flight route</h2></div>
-              <span className="panel-badge">3D view</span>
-            </div>
-            {preview ? <FlightRoute3D preview={preview} /> : (
-              <div className="chart-empty spatial-empty">
-                <div className="empty-crosshair spatial-crosshair" aria-hidden="true"><span>⌁</span></div>
-                <h3>Explore the route in 3D</h3>
-                <p>Generate a preview to see<br />position and altitude together.</p>
-              </div>
-            )}
-            <p className="chart-caption">East / North / Relative pressure altitude (m). Altitude is relative to the first CSV sample.</p>
-          </section>
-
-          <section className="panel mission-panel" aria-labelledby="mission-title">
-            <div className="panel-heading">
-              <div><p className="panel-kicker">Source data</p><h2 id="mission-title">Mission input</h2></div>
-              <span className="step-number">01</span>
-            </div>
-            <CsvFilePicker file={file} onFileChange={handleFileChange} />
-            <button
-              className="generate-preview"
-              type="button"
-              disabled={!file || previewState.status === 'loading'}
-              onClick={handleGeneratePreview}
-            >
-              {previewState.status === 'loading' ? 'Generating preview…' : 'Generate preview'}
-              <span aria-hidden="true">↗</span>
-            </button>
-            <div aria-live="polite" aria-atomic="true">
-              {previewState.status === 'loading' && (
-                <p className="preview-loading" role="status">Checking the flight CSV and generating waypoints…</p>
-              )}
-              {preview && <p className="preview-confirmation">Preview generated. Explore the route and altitude below.</p>}
-            </div>
-            {previewState.status === 'error' && (
-              <div className="preview-error" role="alert">
-                <h3>Preview could not be generated</h3>
-                <p>{previewState.message}</p>
-                <p>Check the file or local API, then choose Generate preview to retry.</p>
-              </div>
-            )}
-            <p className="privacy-note">Your CSV is sent to the local API only when you generate a preview. Uploads are not retained.</p>
-            <div className="input-requirements">
-              <span className="panel-kicker">Required channels</span>
-              <p>time(ms) · LAT · LNG · PRESSURE_ALT</p>
-            </div>
-          </section>
-
           <section className="panel altitude-panel" aria-labelledby="altitude-title">
             <div className="panel-heading">
               <div><p className="panel-kicker">Vertical profile</p><h2 id="altitude-title">Altitude profile</h2></div>
@@ -163,23 +151,38 @@ function App() {
             <p className="chart-caption">Relative to the first CSV pressure altitude sample.{preview && ' Drag the time slider to zoom.'}</p>
           </section>
 
-          <section className="panel preview-summary" aria-labelledby="preview-title">
+          <section className="panel spatial-panel" aria-labelledby="spatial-title">
             <div className="panel-heading">
-              <div><p className="panel-kicker">Mission overview</p><h2 id="preview-title">{preview ? 'Preview ready' : 'Preview summary'}</h2></div>
-              <span className="step-number">02</span>
+              <div><p className="panel-kicker">Spatial profile</p><h2 id="spatial-title">3D flight route</h2></div>
+              <span className="panel-badge">3D view</span>
             </div>
-            <dl className="preview-metrics">
-              <div><dt>CSV samples</dt><dd>{preview ? preview.sample_count.toLocaleString() : '—'}</dd></div>
-              <div><dt>Waypoints</dt><dd>{preview ? preview.waypoint_count.toLocaleString() : '—'}</dd></div>
-              <div className="duration-metric"><dt>Flight duration</dt><dd>{preview ? `${preview.duration_s.toLocaleString(undefined, { maximumFractionDigits: 3 })} s` : '—'}</dd></div>
-            </dl>
-            <div className="reference-details">
-              <div><span>Waypoint interval</span><strong>{preview ? `${preview.downsample_sec} s` : '1 s default'}</strong></div>
-              <div><span>Initial pressure altitude</span><strong>{preview ? `${preview.origin.pressure_altitude_m.toLocaleString(undefined, { maximumFractionDigits: 1 })} m` : '—'}</strong></div>
-            </div>
-            <p className="simulation-note">CSV profile preview only. Simulation has not run.</p>
+            {preview ? <FlightRoute3D preview={preview} /> : (
+              <div className="chart-empty spatial-empty">
+                <div className="empty-crosshair spatial-crosshair" aria-hidden="true"><span>⌁</span></div>
+                <h3>Explore the route in 3D</h3>
+                <p>Generate a preview to see<br />position and altitude together.</p>
+              </div>
+            )}
+            <p className="chart-caption">East / North / Relative pressure altitude (m). Altitude is relative to the first CSV sample.</p>
           </section>
         </div>
+
+        <section className="panel preview-summary" aria-labelledby="preview-title">
+          <div className="panel-heading">
+            <div><p className="panel-kicker">Mission overview</p><h2 id="preview-title">{preview ? 'Preview ready' : 'Preview summary'}</h2></div>
+            <span className="step-number">02</span>
+          </div>
+          <dl className="preview-metrics">
+            <div><dt>CSV samples</dt><dd>{preview ? preview.sample_count.toLocaleString() : '—'}</dd></div>
+            <div><dt>Waypoints</dt><dd>{preview ? preview.waypoint_count.toLocaleString() : '—'}</dd></div>
+            <div className="duration-metric"><dt>Flight duration</dt><dd>{preview ? `${preview.duration_s.toLocaleString(undefined, { maximumFractionDigits: 3 })} s` : '—'}</dd></div>
+          </dl>
+          <div className="reference-details">
+            <div><span>Waypoint interval</span><strong>{preview ? `${preview.downsample_sec} s` : '1 s default'}</strong></div>
+            <div><span>Initial pressure altitude</span><strong>{preview ? `${preview.origin.pressure_altitude_m.toLocaleString(undefined, { maximumFractionDigits: 1 })} m` : '—'}</strong></div>
+          </div>
+          <p className="simulation-note">CSV profile preview only. Simulation has not run.</p>
+        </section>
         <footer className="dashboard-footer"><span>Electric Aircraft Simulator</span><span>CSV <span aria-hidden="true">→</span> Waypoints <span aria-hidden="true">→</span> Profile preview</span></footer>
       </div>
     </main>

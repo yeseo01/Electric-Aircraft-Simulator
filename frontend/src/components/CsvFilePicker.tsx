@@ -122,7 +122,7 @@ export default function CsvFilePicker({ file, onFileChange }: CsvFilePickerProps
         <div className="csv-selected">
           <div className="csv-file-details" role="status">
             <span className="csv-file-label">Selected file</span>
-            <strong className="csv-file-name">{file.name}</strong>
+            <strong className="csv-file-name" title={file.name}>{file.name}</strong>
             <span className="csv-file-size">{formatFileSize(file.size)}</span>
           </div>
           <button
