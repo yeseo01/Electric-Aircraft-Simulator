@@ -8,6 +8,9 @@ import { previewFixture } from './test/previewFixture'
 vi.mock('./components/charts/FlightChart', () => ({
   default: ({ kind }: { kind: string }) => <div role="img" aria-label={`${kind} chart`} />,
 }))
+vi.mock('./components/charts/FlightRoute3D', () => ({
+  default: () => <div role="img" aria-label="3D route chart" />,
+}))
 
 afterEach(() => vi.unstubAllGlobals())
 
@@ -46,6 +49,7 @@ describe('preview submission flow', () => {
     expect(within(summary).getByText('Flight duration').nextElementSibling).toHaveTextContent('2 s')
     expect(screen.getByRole('img', { name: 'route chart' })).toBeInTheDocument()
     expect(screen.getByRole('img', { name: 'altitude chart' })).toBeInTheDocument()
+    expect(screen.getByRole('img', { name: '3D route chart' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Generate preview' })).toBeEnabled()
   })
 
@@ -89,6 +93,7 @@ describe('preview submission flow', () => {
     await screen.findByRole('alert')
     expect(screen.queryByRole('img', { name: 'route chart' })).not.toBeInTheDocument()
     expect(screen.queryByRole('img', { name: 'altitude chart' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('img', { name: '3D route chart' })).not.toBeInTheDocument()
     expect(screen.queryByRole('region', { name: 'Preview ready' })).not.toBeInTheDocument()
   })
 
@@ -104,6 +109,7 @@ describe('preview submission flow', () => {
     expect(screen.queryByRole('region', { name: 'Preview ready' })).not.toBeInTheDocument()
     expect(screen.queryByRole('img', { name: 'route chart' })).not.toBeInTheDocument()
     expect(screen.queryByRole('img', { name: 'altitude chart' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('img', { name: '3D route chart' })).not.toBeInTheDocument()
     if (action !== 'replace') expect(screen.getByRole('button', { name: 'Generate preview' })).toBeDisabled()
   })
 

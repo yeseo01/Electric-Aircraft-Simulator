@@ -8,6 +8,24 @@ explicit upload, loading/error/retry states, a preview summary, and interactive
 ECharts route/altitude plots. The route preserves equal east/north meter scale;
 the altitude plot supports time zoom. This remains a CSV profile preview.
 
+The central 3D panel combines `east_m`, `north_m`, and `relative_altitude_m` in
+meters. Its z coordinate is the first-sample pressure altitude
+offset, not the geometric ENU Up coordinate. Turntable rotation/zoom/reset affect
+only the view. Vertical display scale defaults to 5×, with only 1×/5× choices.
+The default and reset camera are closer to make the initial plot larger.
+Only the rendered aspect ratio is exaggerated and the multiplier is labeled;
+data, axis values, and hover values remain unchanged. At 1×, meter scale is equal.
+
+Layout: compact CSV input sits directly above the 2D route, matching its width
+in the left column. Equal-height route and altitude panels stack below the input;
+the larger 3D panel spans all three rows on the right. The preview summary is
+below the charts. At widths of 1000px or less, panels stack as CSV input, route,
+altitude, and 3D. Format/privacy help
+is collapsible; validation and request errors remain visible. At desktop widths
+above 1000px and heights of at least 680px, the header, charts, summary, and footer
+fit the available viewport height. Narrower/shorter screens retain normal page
+scrolling. Expanded help and errors can scroll within the bounded CSV panel.
+
 ## User flow
 
 Select or drop a CSV → validate → preview the route and altitude profile.

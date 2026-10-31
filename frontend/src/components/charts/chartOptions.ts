@@ -10,6 +10,7 @@ export type FlightChartOption = ComposeOption<
 
 const cyan = '#59d9eb'
 const amber = '#f3c987'
+const routeGrid = { left: 52, right: 16, top: 18, bottom: 38 }
 const axis = {
   type: 'value' as const,
   nameLocation: 'middle' as const,
@@ -48,7 +49,8 @@ function extent(values: number[]): [number, number] {
 export function routeBounds(preview: FlightPreview, width: number, height: number) {
   const [eastMin, eastMax] = extent(preview.waypoints.map((point) => point.east_m))
   const [northMin, northMax] = extent(preview.waypoints.map((point) => point.north_m))
-  const aspect = Math.max(width - 92, 1) / Math.max(height - 90, 1)
+  const aspect = Math.max(width - routeGrid.left - routeGrid.right, 1)
+    / Math.max(height - routeGrid.top - routeGrid.bottom, 1)
   let eastSpan = Math.max(eastMax - eastMin, 20) * 1.25
   let northSpan = Math.max(northMax - northMin, 20) * 1.25
   if (eastSpan / northSpan < aspect) eastSpan = northSpan * aspect
@@ -70,10 +72,10 @@ export function routeOption(preview: FlightPreview, width: number, height: numbe
   const encode = { x: 0, y: 1, tooltip: [2, 0, 1, 3] }
   return {
     animation: false,
-    grid: { left: 66, right: 26, top: 28, bottom: 62 },
+    grid: { ...routeGrid },
     tooltip: { ...tooltip, trigger: 'axis', axisPointer: { type: 'cross' } },
-    xAxis: { ...axis, name: 'East (m)', nameGap: 34, min: bounds.eastMin, max: bounds.eastMax },
-    yAxis: { ...axis, name: 'North (m)', nameGap: 48, min: bounds.northMin, max: bounds.northMax },
+    xAxis: { ...axis, name: 'East (m)', nameGap: 25, min: bounds.eastMin, max: bounds.eastMax },
+    yAxis: { ...axis, name: 'North (m)', nameGap: 38, min: bounds.northMin, max: bounds.northMax },
     series: [
       {
         name: 'Flight route', type: 'line', data, dimensions, encode,
@@ -84,14 +86,14 @@ export function routeOption(preview: FlightPreview, width: number, height: numbe
         name: 'Start', type: 'scatter', data: [data[0]], dimensions, encode,
         symbol: 'circle', symbolSize: 11, z: 3,
         itemStyle: { color: cyan, borderColor: '#071824', borderWidth: 3 },
-        label: { show: true, formatter: 'START', position: 'bottom', color: cyan, fontSize: 10, distance: 12 },
+        label: { show: true, formatter: 'START', position: 'bottom', color: cyan, fontSize: 9, distance: 4 },
         tooltip: { trigger: 'item' },
       },
       {
         name: 'End', type: 'scatter', data: [data[data.length - 1]], dimensions, encode,
         symbol: 'diamond', symbolSize: 12, z: 4,
         itemStyle: { color: amber, borderColor: '#071824', borderWidth: 2 },
-        label: { show: true, formatter: 'END', position: 'top', color: amber, fontSize: 10, distance: 12 },
+        label: { show: true, formatter: 'END', position: 'top', color: amber, fontSize: 9, distance: 4 },
         tooltip: { trigger: 'item' },
       },
     ],
@@ -101,15 +103,15 @@ export function routeOption(preview: FlightPreview, width: number, height: numbe
 export function altitudeOption(preview: FlightPreview): FlightChartOption {
   return {
     animation: false,
-    grid: { left: 66, right: 26, top: 24, bottom: 86 },
+    grid: { left: 52, right: 16, top: 10, bottom: 50 },
     tooltip: { ...tooltip, trigger: 'axis', axisPointer: { type: 'line' } },
-    xAxis: { ...axis, name: 'Elapsed time (s)', nameGap: 28, min: 0, max: preview.duration_s },
-    yAxis: { ...axis, name: 'Altitude (m)', nameGap: 48, scale: true },
+    xAxis: { ...axis, name: 'Elapsed time (s)', nameGap: 23, min: 0, max: preview.duration_s },
+    yAxis: { ...axis, name: 'Altitude (m)', nameGap: 38, scale: true },
     dataZoom: [
       { type: 'inside', xAxisIndex: 0, filterMode: 'none' },
       {
-        type: 'slider', xAxisIndex: 0, filterMode: 'none', bottom: 4,
-        left: 66, right: 26, height: 16, showDetail: false,
+        type: 'slider', xAxisIndex: 0, filterMode: 'none', bottom: 0,
+        left: 52, right: 16, height: 10, showDetail: false,
         borderColor: '#294457', backgroundColor: '#0b1c2b',
         fillerColor: '#59d9eb24', handleStyle: { color: cyan, borderColor: cyan },
         dataBackground: { lineStyle: { color: '#496e86' }, areaStyle: { color: '#1f3c50' } },

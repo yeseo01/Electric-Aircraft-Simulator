@@ -7,6 +7,7 @@ const MAX_FILE_BYTES = 10 * 1024 * 1024
 type CsvFilePickerProps = {
   file: File | null
   onFileChange: (file: File | null) => void
+  compact?: boolean
 }
 
 function validateFiles(files: File[]): string | null {
@@ -27,7 +28,7 @@ function formatFileSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MiB`
 }
 
-export default function CsvFilePicker({ file, onFileChange }: CsvFilePickerProps) {
+export default function CsvFilePicker({ file, onFileChange, compact = false }: CsvFilePickerProps) {
   const inputRef = useRef<HTMLInputElement>(null)
   const dragDepth = useRef(0)
   const [isDragging, setIsDragging] = useState(false)
@@ -69,8 +70,22 @@ export default function CsvFilePicker({ file, onFileChange }: CsvFilePickerProps
     setIsDragging(true)
   }
 
+  const selectedFile = file && (
+    <div className="csv-selected">
+      <div className="csv-file-details" role="status">
+        <span className="csv-file-label">Selected file</span>
+        <strong className="csv-file-name" title={file.name}>{file.name}</strong>
+        <span className="csv-file-size">{formatFileSize(file.size)}</span>
+      </div>
+      <button className="csv-remove" type="button" onClick={() => {
+        onFileChange(null)
+        setError(null)
+      }}>Remove file</button>
+    </div>
+  )
+
   return (
-    <div className="csv-picker">
+    <div className={`csv-picker${compact ? ' csv-picker--compact' : ''}`}>
       <input
         ref={inputRef}
         type="file"
@@ -109,34 +124,18 @@ export default function CsvFilePicker({ file, onFileChange }: CsvFilePickerProps
           if (files.length > 0) selectFiles(files)
         }}
       >
-        <p className="csv-drop-title">
-          {isDragging ? 'Drop your flight CSV here' : 'Drag a flight CSV here'}
-        </p>
-        <p id="csv-hint" className="csv-hint">One .csv file · Up to 10 MiB</p>
+        {compact && file ? selectedFile : (
+          <p className="csv-drop-title">
+            {isDragging ? 'Drop your flight CSV here' : 'Drag a flight CSV here'}
+          </p>
+        )}
+        <p id="csv-hint" className={`csv-hint${compact && file ? ' csv-hint--hidden' : ''}`}>One .csv file · Up to 10 MiB</p>
         <button className="csv-choose" type="button" onClick={() => inputRef.current?.click()}>
           {file ? 'Change CSV' : 'Choose CSV'}
         </button>
       </div>
       {error && <p className="csv-error" role="alert">{error}</p>}
-      {file && (
-        <div className="csv-selected">
-          <div className="csv-file-details" role="status">
-            <span className="csv-file-label">Selected file</span>
-            <strong className="csv-file-name">{file.name}</strong>
-            <span className="csv-file-size">{formatFileSize(file.size)}</span>
-          </div>
-          <button
-            className="csv-remove"
-            type="button"
-            onClick={() => {
-              onFileChange(null)
-              setError(null)
-            }}
-          >
-            Remove file
-          </button>
-        </div>
-      )}
+      {!compact && selectedFile}
     </div>
   )
 }
