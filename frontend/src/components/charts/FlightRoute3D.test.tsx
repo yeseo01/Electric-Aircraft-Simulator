@@ -41,7 +41,9 @@ describe('3D chart lifecycle', () => {
     expect(runtime.resize).toHaveBeenCalledOnce()
     fireEvent.click(screen.getByRole('button', { name: 'Reset view' }))
     expect(runtime.relayout).toHaveBeenCalledWith(expect.any(HTMLElement), {
-      'scene.camera': expect.objectContaining({ eye: { x: 1.02, y: -1.19, z: 0.85 } }),
+      'scene.camera': expect.objectContaining({
+        eye: { x: 0.84, y: -0.98, z: 0.7 }, center: { x: 0, y: 0, z: -0.1 },
+      }),
     })
     view.unmount()
     expect(runtime.purge).toHaveBeenCalledOnce()

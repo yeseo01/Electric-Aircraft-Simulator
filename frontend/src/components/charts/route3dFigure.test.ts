@@ -56,6 +56,6 @@ describe('3D route figure', () => {
   it('returns a fresh reset camera so renderer mutations do not change the default', () => {
     const camera = initialCamera()
     camera.eye!.x = 100
-    expect(initialCamera().eye!.x).toBe(1.02)
+    expect(initialCamera().eye!.x).toBe(0.84)
   })
 })

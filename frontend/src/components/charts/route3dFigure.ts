@@ -5,8 +5,13 @@ export const DEFAULT_VERTICAL_SCALE = 5
 export const VERTICAL_SCALES = [1, 5] as const
 
 export function initialCamera(): Partial<Camera> {
-  // Move 15% closer along the same viewing direction for a larger initial view.
-  return { eye: { x: 1.02, y: -1.19, z: 0.85 }, up: { x: 0, y: 0, z: 1 } }
+  // Enlarge the route along the same viewing direction and move it upward
+  // slightly so the foreground has more room in the initial view.
+  return {
+    eye: { x: 0.84, y: -0.98, z: 0.7 },
+    center: { x: 0, y: 0, z: -0.1 },
+    up: { x: 0, y: 0, z: 1 },
+  }
 }
 
 function paddedRange(values: number[]): [number, number] {
