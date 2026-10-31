@@ -85,22 +85,23 @@ h1 { margin: 0; font-size: clamp(25px, 3vw, 35px); font-weight: 500; letter-spac
 .reset-view:disabled { color: #71899a; opacity: 0.7; }
 .empty-profile { color: #4d8199; font-size: 48px; line-height: 1; }
 .chart-caption { margin: 0; padding: 8px 22px 18px; color: #89a5b8; font-size: 10px; line-height: 1.7; }
-.mission-panel { grid-area: mission; align-self: start; padding: 12px 14px; overflow: visible; }
+.mission-panel { grid-area: mission; align-self: start; padding: 12px 14px; overflow: visible; text-align: center; }
 .mission-toolbar { display: grid; grid-template-columns: minmax(0, 1fr); align-items: center; gap: 8px; }
-.mission-panel .panel-heading { min-height: 0; padding: 0; }
+.mission-panel .panel-heading { min-height: 0; padding: 0; justify-content: center; }
 .mission-panel .panel-heading h2 { font-size: 14px; }
 .mission-panel .panel-kicker { display: none; }
-.mission-panel .generate-preview { min-height: 34px; padding: 7px 11px; font-size: 11px; }
-.mission-feedback { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 8px; margin-top: 6px; }
+.mission-panel .generate-preview { position: relative; justify-content: center; min-height: 34px; padding: 7px 28px; font-size: 11px; text-align: center; }
+.mission-panel .generate-preview > span { position: absolute; right: 8px; }
+.mission-feedback { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 8px; margin-top: 6px; }
 .mission-feedback .preview-loading, .mission-feedback .preview-confirmation { margin: 0; }
-.input-help { margin-left: auto; color: #91abbd; font-size: 10px; line-height: 1.7; }
+.input-help { color: #91abbd; font-size: 10px; line-height: 1.7; }
 .input-help summary { cursor: pointer; }
 .input-help summary:focus-visible { outline: 2px solid #75e4f2; outline-offset: 3px; }
 .input-help .privacy-note { margin-top: 8px; }
 .input-help .input-requirements { margin: 4px 0 0; padding: 0; border: 0; }
 .mission-panel .csv-picker { display: grid; gap: 8px; min-width: 0; margin: 0; }
 .mission-panel .csv-picker:has(.csv-selected) { grid-template-columns: minmax(0, 1fr); }
-.mission-panel .csv-dropzone { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 3px 12px; padding: 8px 12px; text-align: left; }
+.mission-panel .csv-dropzone { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 3px 12px; padding: 8px 12px; text-align: center; }
 .mission-panel .csv-dropzone::before { display: none; }
 .mission-panel .csv-drop-title, .mission-panel .csv-hint { margin: 0; }
 .mission-panel .csv-choose { grid-column: 2; grid-row: 1 / 3; }
