@@ -63,7 +63,11 @@ default camera. On wide screens, the compact CSV input sits directly above the
 heights below it. The 3D panel spans all three rows on the right with 2.15 times
 the left column's width. The summary sits below. At 1000px and below, panels stack
 in the order CSV input → 2D route → altitude → 3D.
-CSV format and privacy information can be expanded in the toolbar.
+CSV format and privacy information can be expanded in the toolbar. At desktop
+widths above 1000px and heights of at least 680px, the dashboard fits the browser
+height with compact header/summary rows and charts filling the remaining space.
+Smaller or shorter screens keep the scrollable layout. Long CSV help/errors can
+scroll inside the input panel in the desktop fit layout.
 
 The 3D renderer requires WebGL and is loaded only after successful preview
 generation. Its dedicated gl3d bundle is about 539 kB compressed in the verified

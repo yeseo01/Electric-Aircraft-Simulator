@@ -185,4 +185,80 @@ h1 { margin: 0; font-size: clamp(25px, 3vw, 35px); font-weight: 500; letter-spac
   .preview-metrics dd { font-size: 20px; }
 }
 
+/* Fit the desktop workspace to the available browser height, rather than
+   assigning a fixed 840px+ height to the charts alone. Narrow/short screens
+   retain the scrollable layout above so content stays readable. */
+@media (min-width: 1001px) and (min-height: 680px) {
+  .app { height: 100dvh; min-height: 0; padding: 10px; }
+  .dashboard {
+    display: grid;
+    grid-template-rows: 42px 46px minmax(0, 1fr) 54px 18px;
+    gap: 6px;
+    height: 100%;
+    min-height: 0;
+    max-width: 1800px;
+    padding: 0 12px;
+    border-radius: 16px;
+  }
+  .dashboard-header { min-height: 0; gap: 20px; }
+  .brand { gap: 8px; font-size: 16px; }
+  .brand-mark { width: 27px; height: 27px; }
+  .brand-subtitle { margin-top: 2px; font-size: 6px; }
+  .workspace-tab { padding: 5px 12px; font-size: 10px; }
+  .mode-badge { font-size: 9px; }
+  .page-heading { min-height: 0; padding: 0; gap: 12px; }
+  .eyebrow { display: none; }
+  h1 { font-size: 20px; letter-spacing: -0.5px; }
+  .description { margin-top: 3px; font-size: 10px; }
+  .workflow-label { font-size: 9px; gap: 8px; }
+  .workflow-label > span { width: 24px; height: 24px; }
+  .workspace-grid { height: auto; min-height: 0; gap: 8px; }
+  .workspace-grid > .panel { min-height: 0; }
+  .panel { border-radius: 8px; }
+  .panel-heading { min-height: 30px; padding: 7px 10px 3px; gap: 6px; }
+  .panel-heading h2 { font-size: 13px; }
+  .panel-kicker { display: none; }
+  .panel-badge { padding: 3px 6px; font-size: 8px; }
+  .route-footer { padding: 4px 10px; gap: 8px; font-size: 8px; }
+  .route-footer > span:last-child { display: none; }
+  .chart-caption { padding: 3px 10px 5px; font-size: 8px; line-height: 1.4; }
+  .chart-empty { padding: 8px; }
+  .chart-empty h3 { margin-top: 10px; font-size: 13px; }
+  .chart-empty p { margin-top: 6px; font-size: 10px; line-height: 1.5; }
+  .route-empty .empty-crosshair { display: none; }
+  .route-empty h3 { margin-top: 0; }
+  .empty-profile { font-size: 28px; }
+  .spatial-controls { padding: 4px 10px; gap: 6px; }
+  .vertical-scale-control select, .reset-view { min-height: 25px; padding: 3px 6px; font-size: 9px; }
+  .spatial-scale-note { padding: 0 10px 3px; font-size: 8px; line-height: 1.4; }
+  .mission-panel { max-height: 190px; overflow: auto; padding: 7px 10px; }
+  .mission-toolbar { gap: 4px; }
+  .mission-panel .panel-heading h2 { font-size: 12px; }
+  .mission-panel .csv-dropzone { padding: 4px 6px; gap: 2px 6px; }
+  .mission-panel .csv-drop-title { font-size: 10px; }
+  .mission-panel .csv-hint, .mission-panel .csv-file-size { font-size: 9px; }
+  .mission-panel .csv-file-details { gap: 1px; }
+  .mission-panel .csv-file-name { font-size: 10px; }
+  .mission-panel .csv-picker--compact button { min-height: 26px; padding: 4px 6px; }
+  .mission-panel .generate-preview { min-height: 28px; padding: 4px 8px; font-size: 10px; }
+  .mission-feedback { margin-top: 4px; gap: 2px 6px; }
+  .mission-feedback .preview-loading, .mission-feedback .preview-confirmation, .input-help { font-size: 9px; line-height: 1.4; }
+  .preview-summary {
+    margin: 0;
+    min-height: 0;
+    grid-template-columns: 125px minmax(0, 1.5fr) minmax(160px, 1fr) minmax(130px, 0.7fr);
+  }
+  .preview-summary .panel-heading { padding: 6px 10px; }
+  .preview-summary .panel-heading h2 { font-size: 12px; }
+  .preview-summary .step-number { display: none; }
+  .preview-metrics { gap: 6px; margin: 3px 0; }
+  .preview-metrics > div { padding: 3px 8px; }
+  .preview-metrics dt { font-size: 9px; }
+  .preview-metrics dd { margin-top: 1px; font-size: 17px; letter-spacing: -0.3px; }
+  .reference-details { gap: 3px; margin: 0 12px; }
+  .reference-details > div { gap: 4px; font-size: 9px; }
+  .simulation-note { grid-column: auto; margin: 0 10px; font-size: 8px; line-height: 1.4; }
+  .dashboard-footer { gap: 8px; padding: 0; font-size: 8px; }
+}
+
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }

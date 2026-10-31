@@ -21,7 +21,10 @@ in the left column. Equal-height route and altitude panels stack below the input
 the larger 3D panel spans all three rows on the right. The preview summary is
 below the charts. At widths of 1000px or less, panels stack as CSV input, route,
 altitude, and 3D. Format/privacy help
-is collapsible; validation and request errors remain visible.
+is collapsible; validation and request errors remain visible. At desktop widths
+above 1000px and heights of at least 680px, the header, charts, summary, and footer
+fit the available viewport height. Narrower/shorter screens retain normal page
+scrolling. Expanded help and errors can scroll within the bounded CSV panel.
 
 ## User flow
 

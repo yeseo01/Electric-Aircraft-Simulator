@@ -35,10 +35,11 @@ describe('flight chart data', () => {
     expect(option.dataZoom).toMatchObject([{ xAxisIndex: 0 }, { type: 'slider', xAxisIndex: 0 }])
   })
 
-  it.each([[800, 400], [320, 340], [1200, 380]])('keeps route meters at equal scale in a %sx%s panel', (width, height) => {
+  it.each([[800, 400], [320, 340], [1200, 380], [350, 130], [350, 200]])('keeps route meters at equal scale in a %sx%s panel', (width, height) => {
     const bounds = routeBounds(flight(), width, height)
-    const metersPerPixelX = (bounds.eastMax - bounds.eastMin) / (width - 92)
-    const metersPerPixelY = (bounds.northMax - bounds.northMin) / (height - 90)
+    const grid = routeOption(flight(), width, height).grid as { left: number; right: number; top: number; bottom: number }
+    const metersPerPixelX = (bounds.eastMax - bounds.eastMin) / (width - grid.left - grid.right)
+    const metersPerPixelY = (bounds.northMax - bounds.northMin) / (height - grid.top - grid.bottom)
     expect(metersPerPixelX).toBeCloseTo(metersPerPixelY)
     for (const point of flight().waypoints) {
       expect(point.east_m).toBeGreaterThan(bounds.eastMin)
