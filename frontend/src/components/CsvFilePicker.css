@@ -1,93 +1,16 @@
-.csv-picker {
-  margin: 1.75rem 0 1.25rem;
-}
-
-.csv-dropzone {
-  padding: 2rem 1rem;
-  border: 2px dashed #aebed4;
-  border-radius: 0.5rem;
-  background: #f8faff;
-  text-align: center;
-  transition: border-color 120ms, background-color 120ms;
-}
-
-.csv-dropzone[data-dragging='true'] {
-  border-color: #245bc6;
-  background: #e8f0ff;
-}
-
-.csv-drop-title {
-  margin: 0 0 0.5rem;
-  font-size: 1.125rem;
-  font-weight: 600;
-}
-
-.csv-hint, .csv-file-size, .csv-file-label {
-  color: #58677d;
-  font-size: 0.875rem;
-}
-
-.csv-hint {
-  margin: 0 0 1.25rem;
-}
-
-.csv-picker button {
-  min-height: 2.75rem;
-  padding: 0.625rem 1rem;
-  border: 1px solid transparent;
-  border-radius: 0.375rem;
-  font: inherit;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.csv-picker button:focus-visible {
-  outline: 3px solid #245bc6;
-  outline-offset: 3px;
-}
-
-.csv-choose {
-  color: #fff;
-  background: #245bc6;
-}
-
-.csv-choose:hover {
-  background: #1949a6;
-}
-
-.csv-selected {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  margin-top: 1rem;
-  padding: 1rem;
-  border: 1px solid #dce3ec;
-  border-radius: 0.5rem;
-}
-
-.csv-file-details {
-  display: grid;
-  min-width: 0;
-  gap: 0.25rem;
-}
-
-.csv-file-name {
-  overflow-wrap: anywhere;
-}
-
-.csv-remove {
-  color: #245bc6;
-  background: #edf2fc;
-}
-
-.csv-remove:hover {
-  background: #dce7fa;
-}
-
-.csv-error {
-  margin: 1rem 0 0;
-  color: #a12222;
-  line-height: 1.5;
-}
+.csv-picker { margin: 10px 0 16px; }
+.csv-dropzone { padding: 25px 12px 20px; border: 1px dashed #52778e; border-radius: 8px; background: #17364738; text-align: center; transition: border-color 120ms, background-color 120ms; }
+.csv-dropzone::before { content: '↑'; display: grid; place-items: center; width: 34px; height: 34px; margin: 0 auto 15px; border: 1px solid #51768b80; border-radius: 9px; color: #78dae6; font-size: 23px; font-weight: 300; }
+.csv-dropzone[data-dragging='true'] { border-color: #7ce3ed; background: #59d9eb14; }
+.csv-drop-title { margin: 0 0 6px; color: #ccdee8; font-size: 12px; font-weight: 500; }
+.csv-hint, .csv-file-size, .csv-file-label { color: #8daabd; font-size: 10px; }
+.csv-hint { margin: 0 0 17px; }
+.csv-picker button { min-height: 36px; padding: 8px 13px; border: 1px solid #50768d; border-radius: 6px; font-size: 11px; font-weight: 500; cursor: pointer; }
+.csv-choose { color: #d0e6ef; background: #24485b80; }
+.csv-choose:hover { background: #315d72; }
+.csv-selected { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin-top: 12px; padding: 12px; border: 1px solid #345166; border-radius: 7px; background: #0a1b2840; }
+.csv-file-details { display: grid; min-width: 0; flex: 1; gap: 5px; }
+.csv-file-name { color: #d8e7ef; font-size: 11px; font-weight: 500; overflow-wrap: anywhere; }
+.csv-picker .csv-remove { min-height: 32px; padding: 6px 8px; border-color: #446074; color: #aac6d6; background: #1b3343; font-size: 10px; }
+.csv-remove:hover { background: #294c61; }
+.csv-error { margin: 12px 0 0; color: #f0baba; font-size: 11px; line-height: 1.6; }

@@ -4,7 +4,9 @@ React + TypeScript + Vite application generated from the official `react-ts`
 template. The page now accepts a CSV through drag-and-drop or the native file
 chooser and displays the selected filename and size. **Generate preview** sends
 the selected CSV to FastAPI and displays the sample count, waypoint count, and
-flight duration. Route and altitude charts are the next step in
+flight duration. A dark dashboard also plots the east/north route and relative
+pressure altitude over time, with start/end markers, tooltips, and a time zoom
+slider. This implements the preview workflow in
 [issue #1](https://github.com/yeseo01/Electric-Aircraft-Simulator/issues/1).
 
 ## Prerequisites
@@ -43,6 +45,14 @@ Use **Choose CSV** or drop a file, then click **Generate preview**. Merely choos
 a file does not send it. The button shows a loading state until the API responds.
 Errors include the CSV column and physical line number where available; fix the
 file or restart the API and click the button again to retry.
+
+The route uses local east/north meters at equal scale, not geographic map tiles.
+The altitude plot uses elapsed seconds and pressure altitude relative to the
+first CSV sample. Hover or click the plots to inspect coordinates. Drag the
+altitude time slider or zoom inside the altitude plot to inspect a time range.
+Resizing the panel preserves the route's equal scale. On narrow screens, the
+input panel moves above the charts. Empty states and summary dashes remain until
+a preview succeeds; there is no fabricated flight data or simulation telemetry.
 
 Vite forwards `/api/*` to `http://127.0.0.1:8000` through `server.proxy` in
 `vite.config.ts`. The browser uses a relative URL, so no cross-origin request
@@ -84,7 +94,8 @@ npm run build
 
 Vitest and React Testing Library exercise selection, replacement, removal,
 drag-and-drop, validation boundaries, keyboard access, multipart requests, errors,
-retry, loading states, cancellation, and late-response handling. Use `npm run test:watch`
+retry, loading states, cancellation, late-response handling, chart coordinate
+mapping, equal scale, stationary routes, resize, and chart cleanup. Use `npm run test:watch`
 to rerun tests as you edit.
 
 The build runs TypeScript checking and creates production assets in `dist/`.
@@ -102,6 +113,9 @@ for future lint checks.
 | `src/api/flightPreviews.ts` | API types, FormData/fetch, response checks, error messages |
 | `src/api/flightPreviews.test.ts` | Multipart and response contract tests |
 | `src/App.test.tsx` | Submit, retry, loading, and stale-response interaction tests |
+| `src/components/charts/FlightChart.tsx` | ECharts registration, React lifecycle, ResizeObserver, SVG rendering |
+| `src/components/charts/chartOptions.ts` | Route/altitude options, units, equal scale, endpoints, and time zoom |
+| `src/components/charts/*.test.*` | Coordinate semantics and chart lifecycle tests |
 | `src/components/CsvFilePicker.tsx` | Native input, drag events, metadata checks, and selection feedback |
 | `src/components/CsvFilePicker.css` | Drop area, selected file, and error styles |
 | `src/components/CsvFilePicker.test.tsx` | User interaction tests with synthetic files |
@@ -119,3 +133,5 @@ for the original setup workflow.
 
 For a step-by-step Korean explanation of this increment, see
 [React → FastAPI learning notes](../docs/learning/react-fastapi-preview.md).
+For the dashboard and charts increment, see
+[dashboard learning notes](../docs/learning/flight-dashboard-charts.md).
