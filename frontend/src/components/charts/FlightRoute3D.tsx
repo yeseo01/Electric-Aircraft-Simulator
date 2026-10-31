@@ -2,12 +2,13 @@ import { useEffect, useRef, useState } from 'react'
 import type * as Plotly from 'plotly.js'
 import type { FlightPreview } from '../../api/flightPreviews'
 import { loadPlotly3d } from './plotly3dRuntime'
-import { initialCamera, route3dFigure } from './route3dFigure'
+import { DEFAULT_VERTICAL_SCALE, VERTICAL_SCALES, initialCamera, route3dFigure } from './route3dFigure'
 
 export default function FlightRoute3D({ preview }: { preview: FlightPreview }) {
   const hostRef = useRef<HTMLDivElement>(null)
   const resetViewRef = useRef<(() => void) | null>(null)
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
+  const [verticalScale, setVerticalScale] = useState<number>(DEFAULT_VERTICAL_SCALE)
 
   useEffect(() => {
     const host = hostRef.current
@@ -35,7 +36,7 @@ export default function FlightRoute3D({ preview }: { preview: FlightPreview }) {
       try {
         plotly = await loadPlotly3d()
         if (disposed) return
-        const figure = route3dFigure(preview)
+        const figure = route3dFigure(preview, verticalScale)
         await plotly.newPlot(graph, figure.data, figure.layout, figure.config)
         if (disposed) {
           plotly.purge(graph)
@@ -65,22 +66,28 @@ export default function FlightRoute3D({ preview }: { preview: FlightPreview }) {
       if (ready) plotly?.purge(graph)
       graph.remove()
     }
-  }, [preview])
+  }, [preview, verticalScale])
 
   return (
     <>
       <div className="flight-chart flight-chart--3d">
         <div className="chart-canvas" ref={hostRef} role="img"
-          aria-label={`3D flight route with ${preview.waypoint_count} waypoints. East, north, and relative pressure altitude in meters, at equal scale.`} />
+          aria-label={`3D flight route with ${preview.waypoint_count} waypoints. East, north, and relative pressure altitude in meters. Vertical display scale ${verticalScale} times; altitude values unchanged.`} />
         {status === 'loading' && <p className="spatial-status" role="status">Preparing 3D view…</p>}
         {status === 'error' && <p className="spatial-status spatial-error" role="alert">
           The 3D view could not be loaded. Check WebGL support and your connection, then generate the preview again. The 2D charts remain available.
         </p>}
       </div>
       <div className="spatial-controls">
-        <span>Drag to rotate · Scroll to zoom</span>
+        <label className="vertical-scale-control">Vertical scale
+          <select aria-label="Vertical display scale" value={verticalScale}
+            onChange={event => setVerticalScale(Number(event.target.value))}>
+            {VERTICAL_SCALES.map(scale => <option key={scale} value={scale}>{scale}×{scale === 1 ? ' (equal)' : ''}</option>)}
+          </select>
+        </label>
         <button className="reset-view" type="button" disabled={status !== 'ready'} onClick={() => resetViewRef.current?.()}>Reset view</button>
       </div>
+      <p className="spatial-scale-note">Height displayed at {verticalScale}×. Altitude values unchanged. Drag to rotate · Scroll to zoom.</p>
     </>
   )
 }

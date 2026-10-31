@@ -52,9 +52,13 @@ The route uses local east/north meters at equal scale, not geographic map tiles.
 The altitude plot uses elapsed seconds and pressure altitude relative to the
 first CSV sample. Hover or click the plots to inspect coordinates. Drag the
 altitude time slider or zoom inside the altitude plot to inspect a time range.
-The 3D panel uses east/north/relative pressure altitude in meters at equal scale;
+The 3D panel uses east/north/relative pressure altitude in meters;
 drag to rotate, scroll to zoom, and use **Reset view** to restore the default
-camera. It does not exaggerate altitude. The three panels appear in the order
+camera. **Vertical scale** defaults to **10×** to make climbs/descents visible,
+with 1× (equal scale), 5×, 10×, 20×, and 50× options. Only the rendered vertical
+aspect ratio changes; coordinates, axis values, and hover values remain actual
+meters. The multiplier is always displayed. Changing it redraws the view at the
+default camera. The three panels appear in the order
 2D route → 3D route → CSV input on wide screens. At 1100px and below, input moves
 first, followed by 2D, 3D, altitude, and summary.
 

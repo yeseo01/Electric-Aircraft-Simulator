@@ -102,7 +102,7 @@ function App() {
           <section className="panel spatial-panel" aria-labelledby="spatial-title">
             <div className="panel-heading">
               <div><p className="panel-kicker">Spatial profile</p><h2 id="spatial-title">3D flight route</h2></div>
-              <span className="panel-badge">Equal scale</span>
+              <span className="panel-badge">3D view</span>
             </div>
             {preview ? <FlightRoute3D preview={preview} /> : (
               <div className="chart-empty spatial-empty">

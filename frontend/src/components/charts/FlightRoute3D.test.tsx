@@ -56,6 +56,19 @@ describe('3D chart lifecycle', () => {
     expect(screen.getByRole('button', { name: 'Reset view' })).toBeDisabled()
   })
 
+  it('defaults to 10× and lets the user return to equal scale without changing altitude data', async () => {
+    render(<FlightRoute3D preview={previewFixture()} />)
+    await expectReady()
+    expect(screen.getByRole('combobox', { name: 'Vertical display scale' })).toHaveValue('10')
+    expect(screen.getByText(/Height displayed at 10×/)).toBeInTheDocument()
+    const initialData = runtime.newPlot.mock.calls[0][1]
+    fireEvent.change(screen.getByRole('combobox', { name: 'Vertical display scale' }), { target: { value: '1' } })
+    await expectReady()
+    expect(runtime.newPlot).toHaveBeenCalledTimes(2)
+    expect(runtime.newPlot.mock.calls[1][1]).toEqual(initialData)
+    expect(screen.getByRole('img', { name: /Vertical display scale 1 times/ })).toBeInTheDocument()
+  })
+
   it('does not create a plot if an import completes after unmount', async () => {
     let complete!: (value: typeof api) => void
     runtime.load.mockReturnValueOnce(new Promise(resolve => { complete = resolve }))

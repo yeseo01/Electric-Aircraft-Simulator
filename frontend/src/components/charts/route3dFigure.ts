@@ -1,6 +1,9 @@
 import type { Camera, Config, Data, Layout, SceneAxis } from 'plotly.js'
 import type { FlightPreview } from '../../api/flightPreviews'
 
+export const DEFAULT_VERTICAL_SCALE = 10
+export const VERTICAL_SCALES = [1, 5, 10, 20, 50] as const
+
 export function initialCamera(): Partial<Camera> {
   return { eye: { x: 1.2, y: -1.4, z: 1 }, up: { x: 0, y: 0, z: 1 } }
 }
@@ -27,16 +30,20 @@ function axis(title: string, range: [number, number]): Partial<SceneAxis> {
   }
 }
 
-export function route3dFigure(preview: FlightPreview): {
+export function route3dFigure(preview: FlightPreview, verticalScale = DEFAULT_VERTICAL_SCALE): {
   data: Data[]; layout: Partial<Layout>; config: Partial<Config>
 } {
+  if (!Number.isFinite(verticalScale) || verticalScale <= 0) {
+    throw new Error('Vertical display scale must be finite and positive.')
+  }
   const x = preview.waypoints.map(point => point.east_m)
   const y = preview.waypoints.map(point => point.north_m)
   const z = preview.waypoints.map(point => point.relative_altitude_m)
   const times = preview.waypoints.map(point => point.time_s)
   const ranges = [paddedRange(x), paddedRange(y), paddedRange(z)]
   const spans = ranges.map(([min, max]) => max - min)
-  const maxSpan = Math.max(...spans)
+  const displaySpans = [spans[0], spans[1], spans[2] * verticalScale]
+  const maxSpan = Math.max(...displaySpans)
   const hover = 'Time: %{customdata:.2f} s<br>East: %{x:,.1f} m<br>North: %{y:,.1f} m<br>Relative pressure altitude: %{z:,.1f} m<extra>%{fullData.name}</extra>'
 
   return {
@@ -60,10 +67,10 @@ export function route3dFigure(preview: FlightPreview): {
       hoverlabel: { bgcolor: '#102a3d', bordercolor: '#386279', font: { color: '#e6f4fa', size: 11 } },
       scene: {
         bgcolor: 'rgba(0,0,0,0)', dragmode: 'orbit', camera: initialCamera(),
-        // Normalize by the longest axis: equal meters without a thin flight
-        // expanding beyond the camera's view (Plotly's 'data' mode can do that).
+        // Stretch only the rendered vertical axis. Data, ticks and hover values
+        // remain actual meters; the UI always shows the display multiplier.
         aspectmode: 'manual',
-        aspectratio: { x: spans[0] / maxSpan, y: spans[1] / maxSpan, z: spans[2] / maxSpan },
+        aspectratio: { x: displaySpans[0] / maxSpan, y: displaySpans[1] / maxSpan, z: displaySpans[2] / maxSpan },
         xaxis: axis('East (m)', ranges[0]), yaxis: axis('North (m)', ranges[1]),
         zaxis: axis('Δ pressure alt (m)', ranges[2]),
       },
