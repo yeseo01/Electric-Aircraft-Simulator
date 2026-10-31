@@ -8,6 +8,11 @@ explicit upload, loading/error/retry states, a preview summary, and interactive
 ECharts route/altitude plots. The route preserves equal east/north meter scale;
 the altitude plot supports time zoom. This remains a CSV profile preview.
 
+The central 3D panel combines `east_m`, `north_m`, and `relative_altitude_m` in
+meters at equal scale. Its z coordinate is the first-sample pressure altitude
+offset, not the geometric ENU Up coordinate. Orbit/zoom/reset affect only the
+view; the uploaded values are not changed or vertically exaggerated.
+
 ## User flow
 
 Select or drop a CSV → validate → preview the route and altitude profile.

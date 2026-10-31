@@ -6,7 +6,9 @@ chooser and displays the selected filename and size. **Generate preview** sends
 the selected CSV to FastAPI and displays the sample count, waypoint count, and
 flight duration. A dark dashboard also plots the east/north route and relative
 pressure altitude over time, with start/end markers, tooltips, and a time zoom
-slider. This implements the preview workflow in
+slider. A central Plotly 3D route panel combines position and relative pressure
+altitude with orbit, zoom, endpoint markers, and a reset-view button.
+This implements the preview workflow in
 [issue #1](https://github.com/yeseo01/Electric-Aircraft-Simulator/issues/1).
 
 ## Prerequisites
@@ -50,8 +52,20 @@ The route uses local east/north meters at equal scale, not geographic map tiles.
 The altitude plot uses elapsed seconds and pressure altitude relative to the
 first CSV sample. Hover or click the plots to inspect coordinates. Drag the
 altitude time slider or zoom inside the altitude plot to inspect a time range.
-Resizing the panel preserves the route's equal scale. On narrow screens, the
-input panel moves above the charts. Empty states and summary dashes remain until
+The 3D panel uses east/north/relative pressure altitude in meters at equal scale;
+drag to rotate, scroll to zoom, and use **Reset view** to restore the default
+camera. It does not exaggerate altitude. The three panels appear in the order
+2D route → 3D route → CSV input on wide screens. At 1100px and below, input moves
+first, followed by 2D, 3D, altitude, and summary.
+
+The 3D renderer requires WebGL and is loaded only after successful preview
+generation. Its dedicated gl3d bundle is about 539 kB compressed in the verified
+build; Vite reports a large-chunk warning for that vendor module. It is already
+a separate dynamic import, so the initial upload screen does not download it.
+If loading or rendering fails, the 3D panel explains the error while the existing
+2D charts remain available. No external plotting service or CDN receives CSV data.
+
+Resizing the panel preserves the route's equal scale. Empty states and summary dashes remain until
 a preview succeeds; there is no fabricated flight data or simulation telemetry.
 
 Vite forwards `/api/*` to `http://127.0.0.1:8000` through `server.proxy` in
@@ -115,6 +129,9 @@ for future lint checks.
 | `src/App.test.tsx` | Submit, retry, loading, and stale-response interaction tests |
 | `src/components/charts/FlightChart.tsx` | ECharts registration, React lifecycle, ResizeObserver, SVG rendering |
 | `src/components/charts/chartOptions.ts` | Route/altitude options, units, equal scale, endpoints, and time zoom |
+| `src/components/charts/FlightRoute3D.tsx` | Async 3D renderer, resize, reset view, failure feedback, and cleanup |
+| `src/components/charts/route3dFigure.ts` | 3D coordinate mapping, axis bounds, equal scale, and default camera |
+| `src/components/charts/plotly3dRuntime.ts` | Dynamic import of the Plotly gl3d bundle |
 | `src/components/charts/*.test.*` | Coordinate semantics and chart lifecycle tests |
 | `src/components/CsvFilePicker.tsx` | Native input, drag events, metadata checks, and selection feedback |
 | `src/components/CsvFilePicker.css` | Drop area, selected file, and error styles |
@@ -135,3 +152,4 @@ For a step-by-step Korean explanation of this increment, see
 [React → FastAPI learning notes](../docs/learning/react-fastapi-preview.md).
 For the dashboard and charts increment, see
 [dashboard learning notes](../docs/learning/flight-dashboard-charts.md).
+For the 3D addition, see [3D route learning notes](../docs/learning/flight-route-3d.md).

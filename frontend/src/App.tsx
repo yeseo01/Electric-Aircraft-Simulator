@@ -3,6 +3,7 @@ import { createFlightPreview } from './api/flightPreviews'
 import type { FlightPreview } from './api/flightPreviews'
 import CsvFilePicker from './components/CsvFilePicker'
 import FlightChart from './components/charts/FlightChart'
+import FlightRoute3D from './components/charts/FlightRoute3D'
 import './App.css'
 
 type PreviewState =
@@ -96,6 +97,21 @@ function App() {
               <span><i className="legend-dot start-dot" />Start <i className="legend-dot end-dot" />End</span>
               <span>Local east / north · meters · equal scale</span>
             </div>
+          </section>
+
+          <section className="panel spatial-panel" aria-labelledby="spatial-title">
+            <div className="panel-heading">
+              <div><p className="panel-kicker">Spatial profile</p><h2 id="spatial-title">3D flight route</h2></div>
+              <span className="panel-badge">Equal scale</span>
+            </div>
+            {preview ? <FlightRoute3D preview={preview} /> : (
+              <div className="chart-empty spatial-empty">
+                <div className="empty-crosshair spatial-crosshair" aria-hidden="true"><span>⌁</span></div>
+                <h3>Explore the route in 3D</h3>
+                <p>Generate a preview to see<br />position and altitude together.</p>
+              </div>
+            )}
+            <p className="chart-caption">East / North / Relative pressure altitude (m). Altitude is relative to the first CSV sample.</p>
           </section>
 
           <section className="panel mission-panel" aria-labelledby="mission-title">
