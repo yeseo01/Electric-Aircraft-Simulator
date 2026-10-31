@@ -16,10 +16,11 @@ The default and reset camera are closer to make the initial plot larger.
 Only the rendered aspect ratio is exaggerated and the multiplier is labeled;
 data, axis values, and hover values remain unchanged. At 1×, meter scale is equal.
 
-Layout: a compact CSV input toolbar sits above the charts. On wide screens,
-equal-height 2D route and altitude panels stack on the left; the larger 3D panel
-spans both rows on the right. The preview summary is below the charts. At widths
-of 1000px or less, the charts stack as route, altitude, and 3D. Format/privacy help
+Layout: compact CSV input sits directly above the 2D route, matching its width
+in the left column. Equal-height route and altitude panels stack below the input;
+the larger 3D panel spans all three rows on the right. The preview summary is
+below the charts. At widths of 1000px or less, panels stack as CSV input, route,
+altitude, and 3D. Format/privacy help
 is collapsible; validation and request errors remain visible.
 
 ## User flow

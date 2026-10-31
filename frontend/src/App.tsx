@@ -78,45 +78,45 @@ function App() {
           <p className="workflow-label"><span>01</span> Import & inspect</p>
         </div>
 
-        <section className="panel mission-panel" aria-labelledby="mission-title">
-          <div className="mission-toolbar">
-            <div className="panel-heading">
-              <div><p className="panel-kicker">Source data</p><h2 id="mission-title">Mission input</h2></div>
-            </div>
-            <CsvFilePicker file={file} onFileChange={handleFileChange} />
-            <button
-              className="generate-preview"
-              type="button"
-              disabled={!file || previewState.status === 'loading'}
-              onClick={handleGeneratePreview}
-            >
-              {previewState.status === 'loading' ? 'Generating preview…' : 'Generate preview'}
-              <span aria-hidden="true">↗</span>
-            </button>
-          </div>
-          <div className="mission-feedback">
-            <div aria-live="polite" aria-atomic="true">
-              {previewState.status === 'loading' && (
-                <p className="preview-loading" role="status">Checking the flight CSV and generating waypoints…</p>
-              )}
-              {preview && <p className="preview-confirmation">Preview generated. Explore the route and altitude below.</p>}
-            </div>
-            <details className="input-help">
-              <summary>CSV format &amp; privacy</summary>
-              <p className="privacy-note">Your CSV is sent to the local API only when you generate a preview. Uploads are not retained.</p>
-              <p className="input-requirements">Required channels: time(ms) · LAT · LNG · PRESSURE_ALT</p>
-            </details>
-          </div>
-          {previewState.status === 'error' && (
-            <div className="preview-error" role="alert">
-              <h3>Preview could not be generated</h3>
-              <p>{previewState.message}</p>
-              <p>Check the file or local API, then choose Generate preview to retry.</p>
-            </div>
-          )}
-        </section>
-
         <div className="workspace-grid">
+          <section className="panel mission-panel" aria-labelledby="mission-title">
+            <div className="mission-toolbar">
+              <div className="panel-heading">
+                <div><p className="panel-kicker">Source data</p><h2 id="mission-title">Mission input</h2></div>
+              </div>
+              <CsvFilePicker file={file} onFileChange={handleFileChange} compact />
+              <button
+                className="generate-preview"
+                type="button"
+                disabled={!file || previewState.status === 'loading'}
+                onClick={handleGeneratePreview}
+              >
+                {previewState.status === 'loading' ? 'Generating preview…' : 'Generate preview'}
+                <span aria-hidden="true">↗</span>
+              </button>
+            </div>
+            <div className="mission-feedback">
+              <div aria-live="polite" aria-atomic="true">
+                {previewState.status === 'loading' && (
+                  <p className="preview-loading" role="status">Checking the flight CSV and generating waypoints…</p>
+                )}
+                {preview && <p className="preview-confirmation">Preview generated.</p>}
+              </div>
+              <details className="input-help">
+                <summary>CSV format &amp; privacy</summary>
+                <p className="privacy-note">Your CSV is sent to the local API only when you generate a preview. Uploads are not retained.</p>
+                <p className="input-requirements">Required channels: time(ms) · LAT · LNG · PRESSURE_ALT</p>
+              </details>
+            </div>
+            {previewState.status === 'error' && (
+              <div className="preview-error" role="alert">
+                <h3>Preview could not be generated</h3>
+                <p>{previewState.message}</p>
+                <p>Check the file or local API, then choose Generate preview to retry.</p>
+              </div>
+            )}
+          </section>
+
           <section className="panel route-panel" aria-labelledby="route-title">
             <div className="panel-heading">
               <div><p className="panel-kicker">Flight geometry</p><h2 id="route-title">Flight route</h2></div>

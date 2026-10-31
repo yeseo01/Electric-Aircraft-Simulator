@@ -37,9 +37,9 @@ h1 { margin: 0; font-size: clamp(25px, 3vw, 35px); font-weight: 500; letter-spac
 .workspace-grid {
   display: grid;
   grid-template-columns: minmax(280px, 1fr) minmax(0, 2.15fr);
-  grid-template-rows: repeat(2, minmax(0, 1fr));
-  grid-template-areas: 'route spatial' 'altitude spatial';
-  height: clamp(720px, 52vw, 860px);
+  grid-template-rows: auto repeat(2, minmax(0, 1fr));
+  grid-template-areas: 'mission spatial' 'route spatial' 'altitude spatial';
+  height: clamp(840px, 65vw, 980px);
   gap: 16px;
   align-items: stretch;
 }
@@ -85,27 +85,36 @@ h1 { margin: 0; font-size: clamp(25px, 3vw, 35px); font-weight: 500; letter-spac
 .reset-view:disabled { color: #71899a; opacity: 0.7; }
 .empty-profile { color: #4d8199; font-size: 48px; line-height: 1; }
 .chart-caption { margin: 0; padding: 8px 22px 18px; color: #89a5b8; font-size: 10px; line-height: 1.7; }
-.mission-panel { margin-bottom: 16px; padding: 12px 18px; overflow: visible; }
-.mission-toolbar { display: grid; grid-template-columns: 140px minmax(0, 1fr) 180px; align-items: center; gap: 16px; }
+.mission-panel { grid-area: mission; align-self: start; padding: 12px 14px; overflow: visible; }
+.mission-toolbar { display: grid; grid-template-columns: minmax(0, 1fr); align-items: center; gap: 8px; }
 .mission-panel .panel-heading { min-height: 0; padding: 0; }
-.mission-feedback { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 6px 16px; margin-top: 8px; }
+.mission-panel .panel-heading h2 { font-size: 14px; }
+.mission-panel .panel-kicker { display: none; }
+.mission-panel .generate-preview { min-height: 34px; padding: 7px 11px; font-size: 11px; }
+.mission-feedback { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 8px; margin-top: 6px; }
 .mission-feedback .preview-loading, .mission-feedback .preview-confirmation { margin: 0; }
-.input-help { margin-left: auto; max-width: 560px; color: #91abbd; font-size: 10px; line-height: 1.7; }
+.input-help { margin-left: auto; color: #91abbd; font-size: 10px; line-height: 1.7; }
 .input-help summary { cursor: pointer; }
 .input-help summary:focus-visible { outline: 2px solid #75e4f2; outline-offset: 3px; }
 .input-help .privacy-note { margin-top: 8px; }
 .input-help .input-requirements { margin: 4px 0 0; padding: 0; border: 0; }
 .mission-panel .csv-picker { display: grid; gap: 8px; min-width: 0; margin: 0; }
-.mission-panel .csv-picker:has(.csv-selected) { grid-template-columns: minmax(180px, 0.9fr) minmax(0, 1.1fr); }
+.mission-panel .csv-picker:has(.csv-selected) { grid-template-columns: minmax(0, 1fr); }
 .mission-panel .csv-dropzone { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 3px 12px; padding: 8px 12px; text-align: left; }
 .mission-panel .csv-dropzone::before { display: none; }
 .mission-panel .csv-drop-title, .mission-panel .csv-hint { margin: 0; }
 .mission-panel .csv-choose { grid-column: 2; grid-row: 1 / 3; }
-.mission-panel .csv-selected { min-width: 0; margin: 0; padding: 8px 10px; flex-wrap: nowrap; }
+.mission-panel .csv-selected { min-width: 0; margin: 0; padding: 6px 8px; flex-wrap: nowrap; }
 .mission-panel .csv-file-label { display: none; }
 .mission-panel .csv-file-name { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .mission-panel .csv-file-details { gap: 3px; }
 .mission-panel .csv-error { grid-column: 1 / -1; margin: 0; }
+.mission-panel .csv-picker--compact .csv-dropzone:has(.csv-selected) { grid-template-columns: minmax(0, 1fr) auto auto; gap: 3px 6px; }
+.mission-panel .csv-picker--compact .csv-selected { display: contents; }
+.mission-panel .csv-picker--compact .csv-file-details { grid-column: 1; grid-row: 1 / 3; }
+.mission-panel .csv-picker--compact .csv-remove { grid-column: 3; grid-row: 1 / 3; }
+.mission-panel .csv-picker--compact .csv-hint--hidden { display: none; }
+.mission-panel .csv-picker--compact button { padding: 6px 7px; font-size: 10px; }
 .generate-preview { width: 100%; min-height: 43px; gap: 8px; padding: 11px 15px; border: 1px solid #70e1ef; border-radius: 7px; color: #09202c; background: #69dce9; font-size: 12px; font-weight: 650; cursor: pointer; }
 .generate-preview > span { font-size: 17px; font-weight: 400; }
 .generate-preview:hover:enabled { background: #96edf4; }
@@ -135,7 +144,7 @@ h1 { margin: 0; font-size: clamp(25px, 3vw, 35px); font-weight: 500; letter-spac
   .dashboard { padding: 0 18px; }
   .panel-heading { flex-wrap: wrap; }
   .altitude-panel .panel-heading { gap: 8px; }
-  .workspace-grid { grid-template-columns: minmax(0, 1fr); grid-template-rows: none; grid-template-areas: 'route' 'altitude' 'spatial'; height: auto; }
+  .workspace-grid { grid-template-columns: minmax(0, 1fr); grid-template-rows: none; grid-template-areas: 'mission' 'route' 'altitude' 'spatial'; height: auto; }
   .route-panel, .altitude-panel { height: 360px; }
   .spatial-panel { height: 600px; }
   .mission-toolbar { grid-template-columns: minmax(0, 1fr) 180px; gap: 10px; }
