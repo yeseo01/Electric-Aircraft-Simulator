@@ -288,7 +288,7 @@ Development of the web workflow is tracked in [issue #1](https://github.com/yese
 
 The preview service in `simulator.preview` accepts UTF-8 CSV bytes with `time(ms)`, `LAT`, `LNG`, and `PRESSURE_ALT`, reuses the existing waypoint generation, and returns structured metadata and coordinates. Additional comparison channels are optional for preview.
 
-FastAPI now exposes this service through `POST /api/flight-previews`. The [flight preview contract](docs/flight-preview-contract.md) defines input units, validation, coordinate/time conventions, and API request/response formats. The React + TypeScript + Vite app in `frontend/` supports CSV drag-and-drop and file selection with filename, size, change/remove actions, and metadata validation. API upload and charts are the next increments.
+FastAPI now exposes this service through `POST /api/flight-previews`. The [flight preview contract](docs/flight-preview-contract.md) defines input units, validation, coordinate/time conventions, and API request/response formats. The React + TypeScript + Vite app in `frontend/` supports CSV drag-and-drop, file selection, and preview submission. It displays loading/errors and the returned sample count, waypoint count, and flight duration. Route and altitude charts are the next increment.
 
 ### Run the frontend
 
@@ -300,7 +300,7 @@ npm ci
 npm run dev -- --host 127.0.0.1 --port 5173 --strictPort
 ```
 
-Open `http://127.0.0.1:5173` and choose or drop one nonempty CSV up to 10 MiB. The file stays in browser memory and is not sent to the backend yet. The page runs independently of the Python API. See the [frontend README](frontend/README.md) for file roles, tests, and build commands. Run backend commands below in a separate terminal at the repository root.
+Open `http://127.0.0.1:5173` and choose or drop one nonempty CSV up to 10 MiB. Selecting alone keeps it in browser memory. Start the API below in a separate terminal, then choose **Generate preview** to upload it and display its summary. Vite proxies `/api` to the local Python backend on port 8000. See the [frontend README](frontend/README.md) for file roles, tests, build commands, and deployment routing notes, and the [Korean learning notes](docs/learning/react-fastapi-preview.md) for the implementation walkthrough.
 
 ### Run the API locally
 
